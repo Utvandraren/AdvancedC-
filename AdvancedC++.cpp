@@ -2,10 +2,25 @@
 //
 
 #include <iostream>
+#include "List.h"
+
+//#ifdef _DEBUG
+//#ifndef DBG_NEW
+//#include <stdlib.h>
+//#include <crtdbg.h>
+//#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+//#define new DBG_NEW
+//#endif
+//#endif  // _DEBUG
 
 int main()
 {
-    std::cout << "Hello World!\n";
+#ifdef DBG_NEW
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+    //const char* charTest = "Hello there";
+    List<char> testList("Hello there");
+
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
