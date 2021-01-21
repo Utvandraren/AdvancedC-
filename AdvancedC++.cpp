@@ -20,6 +20,7 @@ int main()
 #endif
     //const char* charTest = "Hello there";
     List<char> testList("Hello there");
+    List<char> testList2(testList);
 
 }
 

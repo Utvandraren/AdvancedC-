@@ -1,5 +1,7 @@
 #pragma once
 #include <iostream>
+#include <cassert>
+#define CHECK assert(Invariant());
 
 
 template<class T>
@@ -13,6 +15,18 @@ class List
 		Link() :_next(this), _prev(this) {}
 
 		//Lägg in funktioner för Insert och Erase här, enklast att hantera i Link samt splice för VG
+
+		void Insert(Node* toInsert) {
+			toInsert->_prev = _prev;
+			toInsert->_next = *this;	
+			_prev = toInsert;
+		}
+
+		Node* Erase() {
+			_next->_prev = _prev;
+			_prev->_next = _next;
+			return static_cast<Node*>(this);
+		}
 	};
 
 	class Node : public Link {
@@ -21,27 +35,169 @@ class List
 	public:
 		Node(const T& data) :_data(data) {};
 	};
+
 	template<class X> //X is T or const T
 	class ListIter {
 		friend class List;
-		Link* _ptr;
+
+		Node* _ptr;
 
 	public:
 
-		//Och här kommer alla funktioner i ListIter
+#pragma region types
+		using iterator_category = std::forward_iterator_tag;
+		using value_type = T;
+		using difference_type = std::ptrdiff_t;
+		using reference = X&;
+		using pointer = X*;
+#pragma endregion types
+
+#pragma region constructors/assignment
+
+		ListIter();   //??? varför ska denna med? typo?, ska det vara destruktorn?
+		//ListIter(Node(T)* p)) { return *this; };  // Kopplat till iterator.begin?	
+		ListIter(const Link* node = nullptr) :_ptr(static_cast<Node*>(const_cast<Link*>(node))) {}
+		ListIter(const ListIter& other) = default;
+		ListIter& operator=(const ListIter& other) = default;	
+
+#pragma endregion constructors/assignment
+
+#pragma region element access
+
+		T& operator*() { return _ptr->_data; } //iterator.begin använder denna?
+		T* operator->() { return &_ptr->_data; }
+
+#pragma endregion element access
+
+#pragma region modifiers
+
+		ListIter& operator++() {
+			_ptr = static_cast<Node>(_ptr._next);
+			return *this;  
+		}
+
+		ListIter operator++(int) {         //what is int used for?
+			auto temp(*this);
+			operator++();
+			return temp;
+		}
+
+		ListIter& operator--() {
+			_ptr = static_cast<Node>(_ptr.prev);
+			return *this;
+		}
+
+		ListIter operator--(int) {
+			auto temp(*this);
+			operator--;
+			return temp;
+		}
+
+#pragma endregion modifiers
+
+
+#pragma region nonmembers
+
+		/*friend bool operator==(const ListIter& lhs, const ListIter& rhs) = default;
+		friend bool operator!=(const ListIter& lhs, const ListIter& rhs) = default;*/
+
+		friend bool operator==(const ListIter& lhs, const ListIter& rhs) {               //Kan användas istället om problem uppstår?
+		    return lhs._ptr == rhs._ptr;
+		}
+		friend bool operator!=(const ListIter& lhs, const ListIter& rhs) {
+		    return lhs._ptr != rhs._ptr;
+		}
+
+#pragma endregion nonmembers
+
+
 	};
 
-public:
-	List() = default;
-	List(const char* other) {
-		for (const char* charPtr = other; *charPtr != '\0'; ++charPtr)
-		{			
-			Node node(*charPtr);
-		}
-	}
 private:
 	Link _head;
 
-	//Och här kommer alla funktioner i List
+public:
+
+#pragma region typeDef //apparently only iterators neccessary
+
+	using iterator = ListIter<T>;
+	using const_iterator = ListIter<const T>;
+
+#pragma endregion typeDef
+
+#pragma region constructors and assignment
+
+	~List() {
+		while (_head._next != nullptr){
+			pop_front();
+		}
+	}
+	List() = default;
+	List(const List& other) {
+		const Link* source = other._head._next;
+		Link** dest = &(_head._next);
+		while (source != nullptr) {
+			Link* node = new Node(static_cast<const Node*>(source)->_data);       //Remeber to clean this up since its stored on stack
+			(*dest) = node;
+			dest = &(node->_next);
+			source = source->_next;
+		}
+	}
+	List(const char* other) { //DEBUGGER TESTER
+		for (const char* charPtr = other; *charPtr != '\0'; ++charPtr)
+		{
+			Node node(*charPtr);
+		}
+	}
+
+#pragma endregion constructors and assignment
+
+
+#pragma region element access
+
+	T& front() { return static_cast<Node*>(_head._next)->_data; }
+	const T& front() const { return static_cast<Node*>(_head._next)->_data; }
+
+#pragma endregion element access
+
+#pragma region iterators
+	
+	iterator begin() { return iterator(_head._next); }
+	const_iterator begin() const { return const_iterator(_head._next); }
+	const_iterator cbegin() const { return const_iterator(_head._next); } //samma, behövs ändras? cbegin ska använda eller är detta som menas noexcept?
+	iterator end() { return iterator(nullptr); }
+	const_iterator end()const { return const_iterator(nullptr); }
+	const_iterator cend()const { return const_iterator(nullptr); }   
+
+#pragma endregion iterators
+
+#pragma region capacity
+
+	bool empty() const  noexcept{ return begin() == end(); }
+	size_t size() const noexcept { return std::distance(cbegin(), cbegin()); }
+
+#pragma endregion capacity
+
+#pragma region modifiers
+
+	iterator insert(const iterator& pos, const T& value) {
+		pos._ptr->Insert(new Node(value));
+		return pos._ptr->_next;
+	}
+
+	iterator erase(const iterator& pos) {
+		iterator temp = pos;   
+		temp._ptr->Erase();
+		++temp;
+		delete pos._ptr;
+		return temp;
+	}
+
+	//TODO pushback, pushfront, popback,  popfront
+
+#pragma endregion modifiers
+
+//TODO frind assignmenets och och jämförelser här samt INVARIANT
+
 };
 
