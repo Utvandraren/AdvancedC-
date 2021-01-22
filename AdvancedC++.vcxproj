@@ -141,9 +141,13 @@
   <ItemGroup>
     <ClCompile Include="AdvancedC++.cpp" />
     <ClCompile Include="List.cpp" />
+    <ClCompile Include="ListBasicTest.cpp" />
+    <ClCompile Include="ListIterTest.cpp" />
+    <ClCompile Include="ListTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="List.h" />
+    <ClInclude Include="TestLevel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

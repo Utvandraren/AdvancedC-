@@ -54,7 +54,7 @@ class List
 
 #pragma region constructors/assignment
 
-		ListIter();   //??? varför ska denna med? typo?, ska det vara destruktorn?
+		//~ListIter();   
 		//ListIter(Node(T)* p)) { return *this; };  // Kopplat till iterator.begin?	
 		ListIter(const Link* node = nullptr) :_ptr(static_cast<Node*>(const_cast<Link*>(node))) {}
 		ListIter(const ListIter& other) = default;
@@ -64,7 +64,7 @@ class List
 
 #pragma region element access
 
-		T& operator*() { return _ptr->_data; } //iterator.begin använder denna?
+		T& operator*() { return _ptr->_data; } 
 		T* operator->() { return &_ptr->_data; }
 
 #pragma endregion element access
@@ -72,11 +72,11 @@ class List
 #pragma region modifiers
 
 		ListIter& operator++() {
-			_ptr = static_cast<Node>(_ptr._next);
+			_ptr = static_cast<Node*>(_ptr->_next);
 			return *this;  
 		}
 
-		ListIter operator++(int) {         //what is int used for?
+		ListIter operator++(int) {         //what is int used for? saving how much the variable is boing to be reduced by?
 			auto temp(*this);
 			operator++();
 			return temp;
@@ -118,6 +118,8 @@ private:
 
 public:
 
+
+
 #pragma region typeDef //apparently only iterators neccessary
 
 	using iterator = ListIter<T>;
@@ -152,7 +154,6 @@ public:
 
 #pragma endregion constructors and assignment
 
-
 #pragma region element access
 
 	T& front() { return static_cast<Node*>(_head._next)->_data; }
@@ -174,7 +175,7 @@ public:
 #pragma region capacity
 
 	bool empty() const  noexcept{ return begin() == end(); }
-	size_t size() const noexcept { return std::distance(cbegin(), cbegin()); }
+	size_t Count() const noexcept { return std::distance(cbegin(), cbegin()); } //check the number of hops? vad är hops? hopp i minnet?
 
 #pragma endregion capacity
 
@@ -195,9 +196,53 @@ public:
 
 	//TODO pushback, pushfront, popback,  popfront
 
+	void pop_front(){}
+	void pop_back(){}
+
+
 #pragma endregion modifiers
 
-//TODO frind assignmenets och och jämförelser här samt INVARIANT
+
+#pragma region testfunktioner 
+
+	bool Invariant() const { 
+		Link* currentNode = &_head;
+		Link* nextNode = currentNode->_next;
+
+		while (currentNode->_next != &_head) 
+		{
+			if (currentNode->_next != nextNode)
+				return false;
+			if (nextNode->_prev != currentNode)
+				return false;
+
+			Link* temp = nextNode;
+			//nextNode = currentNode;
+			currentNode = temp->_next;
+		}
+		
+		//for (auto p = &_head; p != nullptr; p = p->_next) 
+		//{
+		//	//Ha två pekare som pekar från till den adre framför den 
+		//	//flytta vbbåda fram ett steg eftewr varje loop
+
+		//	
+		//}
+
+		return true;
+
+
+		
+	}
+
+#pragma endregion testfunktioner
+
+
+
+
+
+
+	//TODO friend assignmenets och jämförelser här 
 
 };
 
