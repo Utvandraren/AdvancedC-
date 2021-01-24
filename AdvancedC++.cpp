@@ -30,8 +30,8 @@ int main()
     //template class List<char>;  //Hur gjorde man detta testet?
     //The test get stuck somewhere
     TestBasic();
-    TestList();
-    TestListIter();
+    /*TestList();
+    TestListIter();*/
     std::cout << "There should be one memory leak!";
     std::cin.get();
 

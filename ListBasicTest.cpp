@@ -28,7 +28,7 @@ void TestBasic() {
     {
         List<char> foo("foo");
         assert(foo.Count() == 3);
-        foo.Print(cout);;
+        foo.Print(cout);
         assert(foo == foo);
         List<char> bar("bar");
         assert(!(foo == bar));
