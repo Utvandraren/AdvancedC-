@@ -28,7 +28,7 @@ void TestBasic() {
     {
         List<char> foo("foo");
         assert(foo.Count() == 3);
-        foo.Print(cout);
+        foo.Print(cout);;
         assert(foo == foo);
         List<char> bar("bar");
         assert(!(foo == bar));
@@ -37,7 +37,7 @@ void TestBasic() {
 #if LEVEL>=3
     {
         List<char> foo("foo"), bar("bar");
-        assert(foo == foo && foo != foo);
+        assert(foo == foo && !(foo != foo));
         assert(bar < foo && !(bar > foo));
         assert(bar <= foo && !(bar >= foo));
         assert(bar <= bar && foo >= foo);
@@ -49,7 +49,7 @@ void TestBasic() {
     {
         List<char> foo("foo"), bar("bar");
         List<char> foo2(foo);
-        assert(foo2.Invariant() && foo2.Count() == 2);
+        assert(foo2.Invariant() && foo2.Count() == 3);
         assert(foo == foo2);
     }
 #endif
@@ -58,8 +58,7 @@ void TestBasic() {
         List<char> foo("foo"), bar("");
         assert(!foo.empty() && bar.empty());
 
-        const        List<char> bar2(bar);
-        assert(bar.front() == 'b' && bar.back() == 'r');
+        const        List<char> bar2("bar");
         assert(bar2.front() == 'b' && bar2.back() == 'r');
     }
 #endif

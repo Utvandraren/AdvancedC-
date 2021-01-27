@@ -13,22 +13,27 @@ class List
 		friend class List<T>;
 		Link* _next, * _prev;
 		Link() :_next(this), _prev(this) {}
+		Link& operator =(const Link&) = delete;
+		Link(const Link&) = delete;
 
-		//Lägg in funktioner för Insert och Erase här, enklast att hantera i Link samt splice för VG
-
-		void Insert(Node* toInsert) {
+		void Insert(Node* toInsert) { 
 			toInsert->_prev = _prev;
-			toInsert->_next = this;
+			_prev->_next = toInsert;
+
 			_prev = toInsert;
+			toInsert->_next = this;
 		}
 
-		void InsertBack(Node* toInsert) {
-			Link* tempPrev = _head->_prev;
-			_head->_prev = toInsert;
-			toInsert->_prev = tempPrev;
-			toInsert->_next = _head;
+		/*void InsertBack(Node* toInsert) {
+			toInsert->_next = this;
+			_prev->_next = toInsert;
 
-		}
+			_prev = toInsert;
+
+
+
+
+		}*/
 
 		Node* Erase() {
 			_next->_prev = _prev;
@@ -119,7 +124,7 @@ class List
 		/*friend bool operator==(const ListIter& lhs, const ListIter& rhs) = default;
 		friend bool operator!=(const ListIter& lhs, const ListIter& rhs) = default;*/
 
-		friend bool operator==(const ListIter& lhs, const ListIter& rhs) {               
+		friend bool operator==(const ListIter& lhs, const ListIter& rhs) {
 			return lhs._ptr == rhs._ptr;
 		}
 		friend bool operator!=(const ListIter& lhs, const ListIter& rhs) {
@@ -154,31 +159,24 @@ public:
 		CHECK
 	}
 	List() = default;
-	List(const List& other) :List() {
+	List(const List& other) :List() {         //Fix the assignment-----------------------
 		const Link* source = other._head._next;
 		Link** dest = &(_head._next);
-		while (source != nullptr) {
+		while (source != &_head) {
 			Link* node = new Node(static_cast<const Node*>(source)->_data);       //Remember to clean this up since its stored on stack
-			(*dest) = node;
-			dest = &(node->_next);
+			//(*dest) = node;
+			push_front(*node);
+			//dest = &(node->_next);
 			source = source->_next;
 		}
 		CHECK
 	}
-	//List(const char* other) : List() { //DEBUGGER TESTER
-	//	for (const char* charPtr = other; *charPtr != '\0'; ++charPtr)
-	//	{
-	//		Node node(*charPtr);
-	//	}
-	//	CHECK
-	//}
-
-	List(const char* str) :List() { //debug
-		const char* ptr = str;
-		while (*ptr != '\0')
-			++ptr;
-		for (; ptr >= str; --ptr)
+	
+	List(const char* str) :List() { //debug //Förenkla
+		for (const char* ptr = str; *ptr != '\0'; ptr++)
+		{
 			push_front(*ptr);
+		}
 		CHECK
 	}
 
@@ -196,9 +194,9 @@ public:
 	iterator begin() { return iterator(_head._next); }
 	const_iterator begin() const { return const_iterator(_head._next); }
 	const_iterator cbegin() const { return const_iterator(_head._next); }
-	iterator end() { return iterator(nullptr); }
-	const_iterator end()const { return const_iterator(nullptr); }
-	const_iterator cend()const { return const_iterator(nullptr); }
+	iterator end() { return iterator(_head._prev); }                       //MOre to do
+	const_iterator end()const { return const_iterator(_head._prev); }
+	const_iterator cend()const { return const_iterator(_head._prev); }
 
 #pragma endregion iterators
 
@@ -207,27 +205,12 @@ public:
 	bool empty() const  noexcept { return begin() == end(); }
 	size_t Size() const noexcept { return std::distance(cbegin(), cbegin()); }
 	size_t Count()  noexcept {
-
 		int j = 0;
-		for (iterator i = begin(); i != end(); ++i)      //---------------------Fix here 
+		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)     
 		{
 			++j;
 		}
-
 		return j;
-		/*const auto* currentNode = &_head;
-		const auto* nextNode = currentNode->_next;
-		int i = 0;
-
-		while (currentNode->_next != &_head)
-		{
-			++i;
-			const auto* temp = nextNode;
-			currentNode = nextNode;
-			nextNode = temp->_next;
-		}
-
-		return i;*/
 	}
 
 
@@ -253,7 +236,7 @@ public:
 	}
 
 	void push_back(const T& toInsert) {
-		_head.InsertBack(new Node(toInsert));
+		_head._prev->Insert(new Node(toInsert));
 	}
 
 	void pop_front() {
@@ -271,27 +254,26 @@ public:
 #pragma region testfunktioner 
 
 	bool Invariant() const {
-		const auto* currentNode = &_head;
-		const auto* nextNode = currentNode->_next;
 
-		while (currentNode->_next != &_head)
+		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)
 		{
-			if (currentNode->_next != nextNode)
+			if (ptr != ptr->_next->_prev)
 				return false;
-			if (nextNode->_prev != currentNode)
-				return false;
-
-			const auto* temp = nextNode;
-			currentNode = nextNode;         //Something wrong here?
-			nextNode = temp->_next;
 		}
 
-		//for (auto p = &_head; p != nullptr; p = p->_next) 
-		//{
-		//	//Ha två pekare som pekar från till den adre framför den 
-		//	//flytta vbbåda fram ett steg eftewr varje loop
+		//auto currentNode = &_head;
+		//auto nextNode = currentNode->_next;
 
-		//	
+		//while (currentNode->_next != &_head)
+		//{
+		//	/*if (currentNode->_next != nextNode)
+		//		return false;*/
+		//	if (nextNode->_prev != currentNode)
+		//		return false;
+
+		//	auto temp = nextNode;
+		//	currentNode = nextNode;
+		//	nextNode = temp->_next;
 		//}
 
 		return true;
@@ -307,10 +289,12 @@ public:
 		return cout;
 	}
 
-	void Print(std::ostream& cout) {
-		cout << *this;
+	std::ostream& Print(std::ostream& cout) {
+		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)
+			cout << static_cast<Node*>(ptr)->_data << " ";
+		cout << std::endl;
+		return cout;
 	}
-
 
 
 #pragma endregion testfunktioner

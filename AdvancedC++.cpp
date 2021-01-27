@@ -1,5 +1,3 @@
-// AdvancedC++.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 #ifdef _DEBUG
 #ifndef DBG_NEW
 #include <stdlib.h>
@@ -10,30 +8,32 @@
 #endif  // _DEBUG
 
 #include <iostream>
-#include "List.h" 
-
 using std::cout;
 
 #include "TestLevel.h"
+
+#include "List.h"
+
+
+//template class List<int>;
+
 
 void TestBasic();
 void TestList();
 void TestListIter();
 
-
-int main()
-{
+int main() {
 #ifdef DBG_NEW
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
-   
-    //template class List<char>;  //Hur gjorde man detta testet?
-    //The test get stuck somewhere
+
     TestBasic();
-    /*TestList();
-    TestListIter();*/
+    TestList();
+    TestListIter();
+    new int(7);
     std::cout << "There should be one memory leak!";
     std::cin.get();
 
 }
 
+//template class List<int>;
