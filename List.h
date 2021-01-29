@@ -17,23 +17,18 @@ class List
 		Link(const Link&) = delete;
 
 		void Insert(Node* toInsert) { 
-			toInsert->_prev = _prev;
-			_prev->_next = toInsert;
-
-			_prev = toInsert;
-			toInsert->_next = this;
+			toInsert->_next = _next;
+			toInsert->_prev = this;
+			_next->_prev = toInsert;
+			_next = toInsert;			
 		}
 
-		/*void InsertBack(Node* toInsert) {
+		void InsertBack(Node* toInsert) {
+			toInsert->_prev = _prev;
 			toInsert->_next = this;
 			_prev->_next = toInsert;
-
 			_prev = toInsert;
-
-
-
-
-		}*/
+		}
 
 		Node* Erase() {
 			_next->_prev = _prev;
@@ -46,9 +41,9 @@ class List
 			this->_next->_prev = this;
 		}
 
-		void popBack() {
-			this->prev = this->_prev->_prev;
-			this->prev->_prev = this;
+		void popBack() {          //Fix these functions to erase the right wway
+			this->_prev = this->_prev->_prev;
+			this->_prev->_prev = this;
 		}
 	};
 
@@ -159,23 +154,19 @@ public:
 		CHECK
 	}
 	List() = default;
-	List(const List& other) :List() {         //Fix the assignment-----------------------
+	List(const List& other) :List() {         
 		const Link* source = other._head._next;
-		Link** dest = &(_head._next);
-		while (source != &_head) {
-			Link* node = new Node(static_cast<const Node*>(source)->_data);       //Remember to clean this up since its stored on stack
-			//(*dest) = node;
-			push_front(*node);
-			//dest = &(node->_next);
+		while (source != &other._head) {
+			push_back(static_cast<const Node*>(source)->_data);
 			source = source->_next;
 		}
 		CHECK
 	}
 	
-	List(const char* str) :List() { //debug //Förenkla
+	List(const char* str) :List() { //debug 
 		for (const char* ptr = str; *ptr != '\0'; ptr++)
 		{
-			push_front(*ptr);
+			push_back(*ptr);
 		}
 		CHECK
 	}
@@ -187,6 +178,10 @@ public:
 	T& front() { return static_cast<Node*>(_head._next)->_data; }
 	const T& front() const { return static_cast<Node*>(_head._next)->_data; }
 
+	T& back() { return static_cast<Node*>(_head._prev)->_data; }
+	const T& back() const { return static_cast<Node*>(_head._prev)->_data; }
+
+
 #pragma endregion element access
 
 #pragma region iterators
@@ -194,7 +189,7 @@ public:
 	iterator begin() { return iterator(_head._next); }
 	const_iterator begin() const { return const_iterator(_head._next); }
 	const_iterator cbegin() const { return const_iterator(_head._next); }
-	iterator end() { return iterator(_head._prev); }                       //MOre to do
+	iterator end() { return iterator(_head._prev); }                      
 	const_iterator end()const { return const_iterator(_head._prev); }
 	const_iterator cend()const { return const_iterator(_head._prev); }
 
@@ -236,7 +231,7 @@ public:
 	}
 
 	void push_back(const T& toInsert) {
-		_head._prev->Insert(new Node(toInsert));
+		_head.InsertBack(new Node(toInsert));	
 	}
 
 	void pop_front() {
@@ -309,7 +304,7 @@ public:
 	friend bool operator!=(const List& lhs, const List& rhs) {
 		return !(lhs == rhs);
 	}
-	friend bool operator<(const List& lhs, const List& rhs) {
+	friend bool operator<(const List& lhs, const List& rhs) {          //Wrong? might have to be checked later
 		auto lIt = lhs.begin(); auto rIt = rhs.begin();
 		for (; lIt != lhs.end() && rIt != rhs.end(); ++lIt, ++rIt)
 			if (*lIt < *rIt)
@@ -329,7 +324,6 @@ public:
 	}
 
 
-	//TODO friend assignmenets och jämförelser här 
 
 };
 
