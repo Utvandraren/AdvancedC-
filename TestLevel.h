@@ -1,7 +1,7 @@
 #pragma once
 
-#define LEVEL 7
-//#define G
+#define LEVEL 99
+#define G
 //#define VG
 
 //Tanken är att man höjer Level successivt till 12

@@ -30,21 +30,12 @@ class List
 			_prev = toInsert;
 		}
 
-		Node* Erase() {
-			_next->_prev = _prev;
-			_prev->_next = _next;
-			return static_cast<Node*>(this);
-		}
-
-		void popFront() {
-			this->_next = this->_next->_next;
-			this->_next->_prev = this;
-		}
-
-		void popBack() {          //Fix these functions to erase the right wway
-			this->_prev = this->_prev->_prev;
-			this->_prev->_prev = this;
-		}
+		Node* EraseNextNode() {
+			Link* toDelete = this->_next;			
+			_next = _next->_next;
+			_next->_prev = this;
+			return static_cast<Node*>(toDelete);
+		}		
 	};
 
 	class Node : public Link {
@@ -73,9 +64,8 @@ class List
 #pragma region constructors/assignment
 
 		~ListIter() = default;
-		//ListIter(Node<T>* p) { return *this; }  // Kopplat till iterator.begin?	
 		ListIter(const Link* node = nullptr) :_ptr(static_cast<Node*>(const_cast<Link*>(node))) {}
-		ListIter(const ListIter&) = default;  //varför behöver man inte ha en identivierarer för variabeln i parametern?
+		ListIter(const ListIter&) = default; 
 		ListIter& operator=(const ListIter&) = default;
 
 #pragma endregion constructors/assignment
@@ -94,20 +84,20 @@ class List
 			return *this;
 		}
 
-		ListIter operator++(int) {         //what is int used for? saving how much the variable is boing to be reduced by?
+		ListIter operator++(int) {         
 			auto temp(*this);
 			operator++();
 			return temp;
 		}
 
 		ListIter& operator--() {
-			_ptr = static_cast<Node>(_ptr.prev);
+			_ptr = static_cast<Node*>(_ptr->_prev);
 			return *this;
 		}
 
 		ListIter operator--(int) {
 			auto temp(*this);
-			operator--;
+			operator--();
 			return temp;
 		}
 
@@ -115,9 +105,6 @@ class List
 
 
 #pragma region nonmembers
-
-		/*friend bool operator==(const ListIter& lhs, const ListIter& rhs) = default;
-		friend bool operator!=(const ListIter& lhs, const ListIter& rhs) = default;*/
 
 		friend bool operator==(const ListIter& lhs, const ListIter& rhs) {
 			return lhs._ptr == rhs._ptr;
@@ -135,9 +122,6 @@ private:
 	Link _head;
 
 public:
-
-
-
 #pragma region typeDef //apparently only iterators neccessary
 
 	using iterator = ListIter<T>;
@@ -181,7 +165,6 @@ public:
 	T& back() { return static_cast<Node*>(_head._prev)->_data; }
 	const T& back() const { return static_cast<Node*>(_head._prev)->_data; }
 
-
 #pragma endregion element access
 
 #pragma region iterators
@@ -189,17 +172,18 @@ public:
 	iterator begin() { return iterator(_head._next); }
 	const_iterator begin() const { return const_iterator(_head._next); }
 	const_iterator cbegin() const { return const_iterator(_head._next); }
-	iterator end() { return iterator(_head._prev); }                      
-	const_iterator end()const { return const_iterator(_head._prev); }
-	const_iterator cend()const { return const_iterator(_head._prev); }
+	iterator end() { return iterator(&_head); }
+	const_iterator end()const { return const_iterator(&_head); }
+	const_iterator cend()const { return const_iterator(&_head); }
 
 #pragma endregion iterators
+
 
 #pragma region capacity
 
 	bool empty() const  noexcept { return begin() == end(); }
-	size_t Size() const noexcept { return std::distance(cbegin(), cbegin()); }
-	size_t Count()  noexcept {
+	//size_t Size() const noexcept { return std::distance(cbegin(), cbegin()); }
+	size_t Count() const noexcept {
 		int j = 0;
 		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)     
 		{
@@ -208,21 +192,21 @@ public:
 		return j;
 	}
 
-
 #pragma endregion capacity
+
 
 #pragma region modifiers
 
 	iterator insert(const iterator& pos, const T& value) {
-		pos._ptr->Insert(new Node(value));
-		return pos._ptr->_next;
+		pos._ptr->InsertBack(new Node(value));//------------------------------------------------
+		return pos._ptr->_prev;
 	}
 
 	iterator erase(const iterator& pos) {
 		iterator temp = pos;
-		temp._ptr->Erase();
+		--temp;
+		delete (temp._ptr->EraseNextNode());
 		++temp;
-		delete pos._ptr;
 		return temp;
 	}
 
@@ -235,11 +219,11 @@ public:
 	}
 
 	void pop_front() {
-		_head.popFront();
+		delete(_head.EraseNextNode());
 	}
 
 	void pop_back() {
-		_head.popBack();
+		delete(_head._prev->_prev->EraseNextNode());
 	}
 
 
@@ -255,22 +239,6 @@ public:
 			if (ptr != ptr->_next->_prev)
 				return false;
 		}
-
-		//auto currentNode = &_head;
-		//auto nextNode = currentNode->_next;
-
-		//while (currentNode->_next != &_head)
-		//{
-		//	/*if (currentNode->_next != nextNode)
-		//		return false;*/
-		//	if (nextNode->_prev != currentNode)
-		//		return false;
-
-		//	auto temp = nextNode;
-		//	currentNode = nextNode;
-		//	nextNode = temp->_next;
-		//}
-
 		return true;
 	}
 
@@ -291,8 +259,9 @@ public:
 		return cout;
 	}
 
-
 #pragma endregion testfunktioner
+
+#pragma region Comparisons
 
 	friend bool operator==(const List& lhs, const List& rhs) {
 		auto lIt = lhs.begin(); auto rIt = rhs.begin();
@@ -323,6 +292,7 @@ public:
 		return !(lhs < rhs);
 	}
 
+#pragma endregion Comparisons
 
 
 };

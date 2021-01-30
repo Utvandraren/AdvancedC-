@@ -10,7 +10,7 @@
 
 #if (defined(LEVEL)  && (LEVEL>20) ||  !defined(LEVEL))   && (defined(VG) || defined(G))
 
-#include "List.hpp"
+#include "List.h"
 //#include "ListIter.hpp"
 
 using Cont = List<char>; //Ersätt List med vad er lista heter
