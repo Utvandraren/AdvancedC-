@@ -214,7 +214,7 @@ void TestList() {
         assert(IsConstOrConstRefFun(BarC.back()));
     }
 
-    //TestSpliceAndSwap();
+    TestSpliceAndSwap();
     TestIterRel();
 }
 
@@ -361,6 +361,13 @@ void TestSpliceAndSwap()
         FOX BAR;
         Fox.splice(Fox.end(), Bar, Bar.begin(), ++Bar.begin());
         assert(Fox == "FoxB" && Bar == "ar");
+    }
+
+    //Albin debugkod
+    {
+        FOX;
+        Fox.splice(Fox.cbegin(), Fox, ++Fox.cbegin(), Fox.cend());
+        assert(Fox == "oxF");
     }
 }
 

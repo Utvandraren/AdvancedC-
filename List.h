@@ -13,7 +13,7 @@ class List
 		friend class List<T>;
 		Link* _next, * _prev;
 		Link() :_next(this), _prev(this) {}
-		//Link& operator =(const Link&) = delete;       // should not be used or swap wont work?
+		Link& operator =(const Link&) = delete;      
 		Link(const Link&) = delete;
 
 		void Insert(Node* toInsert) {
@@ -37,16 +37,19 @@ class List
 			return static_cast<Node*>(toDelete);
 		}
 
-		//[beforeFirst+1, atLast] is inserted (moved) to after this
+		//[beforeFirst, atLast] is inserted (moved) to after this
 		void Splice(Link* beforeFirst, Link* atLast) {
-			if (beforeFirst == atLast || beforeFirst->_next == atLast)
+			if (beforeFirst == atLast)
 				return; 
 			Link* afterSplice = _next;
 			beforeFirst->_next->_prev = this;
 			_next = beforeFirst->_next;
-
 			atLast->_next = afterSplice;
 			afterSplice->_prev = atLast;
+
+			//the old list that needs to be changed
+			beforeFirst->_next = atLast->_next;
+			beforeFirst->_next->_prev = beforeFirst;		
 		}
 	};
 
@@ -164,12 +167,12 @@ public:
 		const Link* source = other._head._next;
 		while (source != &other._head) {
 			push_back(static_cast<const Node*>(source)->_data);
-			source = source->_next;
+			source = source->_next; // sy på huvudet i slutet istället för hela tiden
 		}
 		CHECK
 	}
 
-	List& operator=(const List& other) {  //OK?
+	List& operator=(const List& other) {  //fel blir en recursiv function i coombination med swap()
 		List temp(other);
 		temp.swap(*this);
 		return *this;
@@ -244,13 +247,52 @@ public:
 	void pop_back() { delete(_head._prev->_prev->EraseNextNode()); }
 
 	void swap(List<T>& rhs) {
-		List temp(std::move(*this)); //Kan man får det här mer förklarat?, varför måste this vara *? ::move om till&&?
-		*this = std::move(rhs);
-		rhs = std::move(temp);
+
+		Link* tempNext = _head._next;
+		Link* tempPrev = _head._prev;
+
+		if (_head._next == &_head && rhs._head._next == &rhs._head)
+			return;
+
+		if (_head._next == &_head) {
+			_head._next = rhs._head._next;
+			_head._prev = rhs._head._prev;
+			_head._next->_prev = &_head;
+			_head._prev->_next = &_head;
+
+			rhs._head._next = &rhs._head;
+			rhs._head._prev = &rhs._head;
+
+			return;
+		}
+		if (rhs._head._next == &rhs._head) {
+			rhs._head._next = tempNext;
+			rhs._head._prev = tempPrev;
+			tempNext->_prev = &rhs._head;
+			tempPrev->_next = &rhs._head;
+
+			_head._next = &_head;
+			_head._prev = &_head;
+			return;
+		}
+
+		//lhs
+		_head._next = rhs._head._next;
+		_head._prev = rhs._head._prev;
+		_head._next->_prev = &_head;
+		_head._prev->_next = &_head;
+
+		//rhs
+		rhs._head._next = tempNext;
+		rhs._head._prev = tempPrev;
+		tempNext->_prev = &rhs._head;
+		tempPrev->_next = &rhs._head;
+
+		CHECK
 	}
 
 	friend void swap(List<T>& lhs, List<T>& rhs) { lhs.swap(rhs); }
-
+	
 	void splice(const_iterator pos, List<T>& other, const_iterator first, const_iterator last) { pos._ptr->Splice(first._ptr, last._ptr); }
 
 #pragma endregion modifiers
