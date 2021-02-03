@@ -13,14 +13,14 @@ class List
 		friend class List<T>;
 		Link* _next, * _prev;
 		Link() :_next(this), _prev(this) {}
-		Link& operator =(const Link&) = delete;
+		//Link& operator =(const Link&) = delete;       // should not be used or swap wont work?
 		Link(const Link&) = delete;
 
-		void Insert(Node* toInsert) { 
+		void Insert(Node* toInsert) {
 			toInsert->_next = _next;
 			toInsert->_prev = this;
 			_next->_prev = toInsert;
-			_next = toInsert;			
+			_next = toInsert;
 		}
 
 		void InsertBack(Node* toInsert) {
@@ -31,11 +31,23 @@ class List
 		}
 
 		Node* EraseNextNode() {
-			Link* toDelete = this->_next;			
+			Link* toDelete = this->_next;
 			_next = _next->_next;
 			_next->_prev = this;
 			return static_cast<Node*>(toDelete);
-		}		
+		}
+
+		//[beforeFirst+1, atLast] is inserted (moved) to after this
+		void Splice(Link* beforeFirst, Link* atLast) {
+			if (beforeFirst == atLast || beforeFirst->_next == atLast)
+				return; 
+			Link* afterSplice = _next;
+			beforeFirst->_next->_prev = this;
+			_next = beforeFirst->_next;
+
+			atLast->_next = afterSplice;
+			afterSplice->_prev = atLast;
+		}
 	};
 
 	class Node : public Link {
@@ -45,7 +57,7 @@ class List
 		Node(const T& data) :_data(data) {};
 	};
 
-	template<class X> //X is T or const T
+	template<class X> 
 	class ListIter {
 		friend class List;
 
@@ -65,15 +77,23 @@ class List
 
 		~ListIter() = default;
 		ListIter(const Link* node = nullptr) :_ptr(static_cast<Node*>(const_cast<Link*>(node))) {}
-		ListIter(const ListIter&) = default; 
+		ListIter(const ListIter&) = default;
 		ListIter& operator=(const ListIter&) = default;
+
+		//Detta kommer att tas upp senare på kursen
+		template<class Y, class = std::enable_if_t<!std::is_const_v<Y>>>
+		ListIter(const ListIter<Y>& rhs) : _ptr(rhs._ptr) {}
+		template<class Y, class = std::enable_if_t<!std::is_const_v<Y>>>
+		ListIter& operator=(const ListIter<Y>& rhs) {
+			_ptr = rhs._ptr;
+		}
 
 #pragma endregion constructors/assignment
 
 #pragma region element access
 
-		T& operator*() { return _ptr->_data; }
-		T* operator->() { return &_ptr->_data; }
+		X& operator*() { return _ptr->_data; }
+		X* operator->() { return &_ptr->_data; }
 
 #pragma endregion element access
 
@@ -84,7 +104,7 @@ class List
 			return *this;
 		}
 
-		ListIter operator++(int) {         
+		ListIter operator++(int) {
 			auto temp(*this);
 			operator++();
 			return temp;
@@ -137,8 +157,10 @@ public:
 		}
 		CHECK
 	}
+
 	List() = default;
-	List(const List& other) :List() {         
+
+	List(const List& other) :List() {
 		const Link* source = other._head._next;
 		while (source != &other._head) {
 			push_back(static_cast<const Node*>(source)->_data);
@@ -146,7 +168,13 @@ public:
 		}
 		CHECK
 	}
-	
+
+	List& operator=(const List& other) {  //OK?
+		List temp(other);
+		temp.swap(*this);
+		return *this;
+	}
+
 	List(const char* str) :List() { //debug 
 		for (const char* ptr = str; *ptr != '\0'; ptr++)
 		{
@@ -185,7 +213,7 @@ public:
 	//size_t Size() const noexcept { return std::distance(cbegin(), cbegin()); }
 	size_t Count() const noexcept {
 		int j = 0;
-		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)     
+		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)
 		{
 			++j;
 		}
@@ -198,7 +226,7 @@ public:
 #pragma region modifiers
 
 	iterator insert(const iterator& pos, const T& value) {
-		pos._ptr->InsertBack(new Node(value));//------------------------------------------------
+		pos._ptr->InsertBack(new Node(value));
 		return pos._ptr->_prev;
 	}
 
@@ -210,22 +238,20 @@ public:
 		return temp;
 	}
 
-	void push_front(const T& toInsert) {
-		_head.Insert(new Node(toInsert));
+	void push_front(const T& toInsert) { _head.Insert(new Node(toInsert)); }
+	void push_back(const T& toInsert) { _head.InsertBack(new Node(toInsert)); }
+	void pop_front() { delete(_head.EraseNextNode()); }
+	void pop_back() { delete(_head._prev->_prev->EraseNextNode()); }
+
+	void swap(List<T>& rhs) {
+		List temp(std::move(*this)); //Kan man får det här mer förklarat?, varför måste this vara *? ::move om till&&?
+		*this = std::move(rhs);
+		rhs = std::move(temp);
 	}
 
-	void push_back(const T& toInsert) {
-		_head.InsertBack(new Node(toInsert));	
-	}
+	friend void swap(List<T>& lhs, List<T>& rhs) { lhs.swap(rhs); }
 
-	void pop_front() {
-		delete(_head.EraseNextNode());
-	}
-
-	void pop_back() {
-		delete(_head._prev->_prev->EraseNextNode());
-	}
-
+	void splice(const_iterator pos, List<T>& other, const_iterator first, const_iterator last) { pos._ptr->Splice(first._ptr, last._ptr); }
 
 #pragma endregion modifiers
 
@@ -233,7 +259,6 @@ public:
 #pragma region testfunktioner 
 
 	bool Invariant() const {
-
 		for (auto ptr = _head._next; ptr != &_head; ptr = ptr->_next)
 		{
 			if (ptr != ptr->_next->_prev)
