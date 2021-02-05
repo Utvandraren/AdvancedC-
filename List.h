@@ -37,19 +37,20 @@ class List
 			return static_cast<Node*>(toDelete);
 		}
 
-		//[beforeFirst, atLast] is inserted (moved) to after this
 		void Splice(Link* beforeFirst, Link* atLast) {
 			if (beforeFirst == atLast)
 				return; 
-			Link* afterSplice = _next;
-			beforeFirst->_next->_prev = this;
-			_next = beforeFirst->_next;
-			atLast->_next = afterSplice;
-			afterSplice->_prev = atLast;
 
-			//the old list that needs to be changed
-			beforeFirst->_next = atLast->_next;
-			beforeFirst->_next->_prev = beforeFirst;		
+			Link* beforeFirstafterSplice = beforeFirst->_prev;
+			Link* atLastaftesplice = atLast->_next;
+
+			beforeFirst->_prev = _prev;
+			_prev->_next = beforeFirst;
+			atLast->_prev->_next = this;
+			_prev = atLast->_prev;
+
+			beforeFirstafterSplice->_next = atLast;
+			atLast->_prev = beforeFirstafterSplice;		 
 		}
 	};
 
