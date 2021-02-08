@@ -27,13 +27,13 @@ class Vector
 		VectorItt();
 		VectorItt(const VectorItt& other);
 		VectorItt& operator= (const VectorItt& other);
-		const_iterator(iterator&);
-		const_iterator& operator=(iterator&);
+		/*const_iterator(iterator&);
+		const_iterator& operator=(iterator&);*/
 #pragma endregion Constructors && Assignment
 
 #pragma region element access
 		T& operator* ();
-		T * operator-> (); 
+		T* operator-> ();
 #pragma endregion element access
 
 
@@ -48,7 +48,7 @@ class Vector
 #pragma endregion Modifiers
 
 #pragma region nonmembers
-		friend bool operator ==(const VectorItt& lhs,const VectorItt& rhs);
+		friend bool operator ==(const VectorItt& lhs, const VectorItt& rhs);
 		friend bool operator !=(const VectorItt& lhs, const VectorItt& rhs);
 
 		//Add all the other comparison operators here
@@ -56,7 +56,12 @@ class Vector
 
 	};
 
+private:
+	size_t _size = 0;
+	size_t _maxSize = 8;
+
 public:
+	T* _data;
 
 #pragma region typedef //only iterators really neccessary!
 	using value_type = T;
@@ -68,20 +73,33 @@ public:
 	using const_pointer = const T*;
 	using size_type = size_t;
 	typedef const T* const_pointer;
-	using iterator = FlistIter<T>;
-	using const_iterator = FlistIter<const T>;
+	//using iterator = FlistIter<T>;
+	////using const_iterator = FlistIter<const T>;
 #pragma endregion typedef
 
 #pragma region Constructors && Assignment
 	~Vector() = default;
-	Vector() = default noexcept;
+	Vector() noexcept {
+		_data[4];
+		CHECK
+	}
 	Vector(const Vector& other) {
 
 	}
 	Vector(Vector&& other) noexcept {
 
 	}
-	Vector(const char* other) { //DEBUG
+	Vector(const char* other) { //DEBUG    //More effective way to do this?
+		for (size_t i = 0; other[i] != '\0'; i++)
+		{
+			++_size;
+		}
+		_data = new T[_size*2];
+		_maxSize = _size * 2;
+		for (size_t i = 0; other[i] != '\0'; i++)
+		{
+			_data[i] = other[i];
+		}
 
 	}
 	Vector& operator=(const Vector& other) {
@@ -100,19 +118,19 @@ public:
 #pragma endregion element access
 
 #pragma region iterators
-	iterator begin() noexcept;
-	iterator end() noexcept;
-	const_iterator begin() const noexcept;
-	const_iterator end() const noexcept;
-	const_iterator cbegin() const noexcept;
-	const_iterator cend() const noexcept;
+	//iterator begin() noexcept;
+	//iterator end() noexcept;
+	//const_iterator begin() const noexcept;
+	//const_iterator end() const noexcept;
+	//const_iterator cbegin() const noexcept;
+	//const_iterator cend() const noexcept;
 	//alla ovanför med "iterator" bytt mot "reverse_iterator"
 #pragma endregion iterators
 
 #pragma region Capacity
-	size_t size() const noexcept;
-	void reserve(size_t n);
-	size_t capacity() const noexcept;
+	size_t size() const noexcept { return _size; }
+	void reserve(size_t n) { _maxSize = n; }
+	size_t capacity() const noexcept { return _maxSize; }
 #pragma endregion Capacity
 
 #pragma region Modifiers
@@ -122,7 +140,15 @@ public:
 #pragma endregion Modifiers
 
 #pragma region nonmembers
-	friend bool operator==(const Vector& lhs, const Vector& other);
+	friend bool operator==(const Vector& lhs, const Vector& other) {
+		for (size_t i = 0; i < lhs.size(); i++)
+		{
+			if (lhs._data[i] != other._data[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
 	// implement all other comparisonoperators
 #pragma endregion nonmembers
 
@@ -132,18 +158,16 @@ public:
 	}
 
 	bool Invariant() const {
-		//If the list is circular answers false, otherwis true
-		size_t i = 0;
-		for (auto p = &_head; p != nullptr; p = p->_next)
-			if (++i == std::numeric_limits<size_t>::max())
-				return false;
+		if (size() > capacity()) {
+			return false;
+		}
 		return true;
 	}
 
-	friend std::ostream& operator<< (std::ostream& cout
-		, const Vector& other) {
+
+	friend std::ostream& operator<<(std::ostream& cout, const Vector& other) {
 		for (size_t i = 0; i < other.size(); ++i)
-			cout << other[i];
+			cout << other._data[i];
 		return cout;
 	}
 #pragma endregion TestFunktion

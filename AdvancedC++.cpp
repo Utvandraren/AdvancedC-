@@ -6,17 +6,14 @@
 #endif  // _DEBUG
 
 #include <type_traits>
-
 #include "Vector.hpp"
 #include "VectIterTest.h"
-
-
 #include <iostream>
 #include <cassert>
 
 using std::cout;
 
-
+void TestBasic();
 void TestVector();
 
 int main() {
@@ -24,6 +21,7 @@ int main() {
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
     std::locale::global(std::locale("swedish"));
+    TestBasic();
     TestVector();
     TestIterPart1();
     TestIterInAlg();
