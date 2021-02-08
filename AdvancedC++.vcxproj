@@ -140,8 +140,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AdvancedC++.cpp" />
+    <ClCompile Include="VectBasicTest.cpp" />
+    <ClCompile Include="VectIterTest.cpp" />
+    <ClCompile Include="VectorTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TestLevel.h" />
+    <ClInclude Include="VectIterTest.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
