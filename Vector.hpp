@@ -10,8 +10,9 @@ class Vector
 	template<class X>
 	class VectorItt
 	{
-	private:
+		friend class Vector<T>;
 
+		X* _ptr;
 	public:
 #pragma region types
 		using iterator_category = std::forward_iterator_tag;
@@ -23,17 +24,28 @@ class Vector
 
 
 #pragma region Constructors && Assignment
-		VectorItt(T* p) {};
-		VectorItt();
-		VectorItt(const VectorItt& other);
-		VectorItt& operator= (const VectorItt& other);
-		/*const_iterator(iterator&);
-		const_iterator& operator=(iterator&);*/
+		~VectorItt() = default;
+		//VectorItt(X* p) : _ptr(static_cast<T*>(p)) {}       // problem should it be cast somehow?
+		//VectorItt(X* p) { _ptr = p; }
+		VectorItt(X* p) { _ptr = p; }
+		VectorItt() = default;
+		VectorItt(const VectorItt& other) = default;
+		VectorItt& operator= (const VectorItt& other) { _ptr = other._ptr; }
+		//const_iterator(iterator&){}   //Mycket förvirrad av dessa två
+		//const_iterator& operator=(iterator&) {} = default;
+
+		template<class Y, class = std::enable_if_t<!std::is_const_v<Y>>>
+		VectorItt(const VectorItt<Y>& rhs) : _ptr(rhs._ptr) {}
+		template<class Y, class = std::enable_if_t<!std::is_const_v<Y>>>
+		VectorItt& operator=(const VectorItt<Y>& rhs) {
+			_ptr = rhs._ptr;
+		}
 #pragma endregion Constructors && Assignment
 
 #pragma region element access
-		T& operator* ();
-		T* operator-> ();
+		X& operator* () { return *_ptr; }
+		X* operator-> () { return &_ptr; }
+		X& operator[](size_t i) { return _ptr[i]; }
 #pragma endregion element access
 
 
@@ -73,8 +85,8 @@ public:
 	using const_pointer = const T*;
 	using size_type = size_t;
 	typedef const T* const_pointer;
-	//using iterator = FlistIter<T>;
-	////using const_iterator = FlistIter<const T>;
+	using iterator = VectorItt<T>;
+	using const_iterator = VectorItt<const T>;
 #pragma endregion typedef
 
 #pragma region Constructors && Assignment
@@ -94,7 +106,7 @@ public:
 		{
 			++_size;
 		}
-		_data = new T[_size*2];
+		_data = new T[_size * 2];
 		_maxSize = _size * 2;
 		for (size_t i = 0; other[i] != '\0'; i++)
 		{
@@ -118,12 +130,12 @@ public:
 #pragma endregion element access
 
 #pragma region iterators
-	//iterator begin() noexcept;
-	//iterator end() noexcept;
-	//const_iterator begin() const noexcept;
-	//const_iterator end() const noexcept;
-	//const_iterator cbegin() const noexcept;
-	//const_iterator cend() const noexcept;
+	iterator begin() noexcept { return iterator(_data); }
+	iterator end() noexcept { return iterator(_data + _size - 1); }
+	const_iterator begin() const noexcept { return const_iterator(_data); }
+	const_iterator end() const noexcept { return const_iterator(_data + _size); }
+	const_iterator cbegin() const noexcept { return const_iterator(_data); }
+	const_iterator cend() const noexcept { return const_iterator(_data + _size); }
 	//alla ovanför med "iterator" bytt mot "reverse_iterator"
 #pragma endregion iterators
 
@@ -140,7 +152,7 @@ public:
 #pragma endregion Modifiers
 
 #pragma region nonmembers
-	friend bool operator==(const Vector& lhs, const Vector& other) {
+	/*friend bool operator==(const Vector& lhs, const Vector& other) {
 		for (size_t i = 0; i < lhs.size(); i++)
 		{
 			if (lhs._data[i] != other._data[i]) {
@@ -148,8 +160,42 @@ public:
 			}
 		}
 		return true;
+	}*/
+
+	friend auto operator<=>(const Vector& lhs, const Vector& rhs) {
+		auto lIt = lhs.begin(); auto rIt = rhs.begin();
+		for (; lIt != lhs.end() && rIt != rhs.end(); ++lIt, ++rIt)
+			if (*lIt < *rIt)
+				return std::strong_ordering::less;
+			else if (*lIt > * rIt)
+				return std::strong_ordering::greater;
+		if (lIt == lhs.end())
+			if (rIt == rhs.end())
+				return std::strong_ordering::equivalent;
+			else
+				return std::strong_ordering::less;
+		else
+			return std::strong_ordering::greater;
 	}
-	// implement all other comparisonoperators
+
+	/*friend auto operator<=>(const Vector& lhs, const Vector& rhs) {
+		auto lIt = lhs._data; auto rIt = rhs._data;
+		for (; lIt != lhs._data[lhs.size()] && rIt != rhs._data[rhs.size()]; ++lIt, ++rIt)
+			if (*lIt < *rIt)
+				return std::strong_ordering::less;
+			else if (*lIt > * rIt)
+				return std::strong_ordering::greater;
+		if (lIt == lhs._data[lhs.size()])
+			if (rIt == rhs._data[rhs.size()])
+				return std::strong_ordering::equivalent;
+			else
+				return std::strong_ordering::less;
+		else
+			return std::strong_ordering::greater;
+	}*/
+	friend bool operator==(const Vector& lhs, const Vector& rhs) { return (lhs <=> rhs) == 0; }
+	friend bool operator!=(const Vector& lhs, const Vector& rhs) { return (lhs <=> rhs) != 0; }
+
 #pragma endregion nonmembers
 
 #pragma region TestFunktion
