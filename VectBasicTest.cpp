@@ -33,7 +33,7 @@ void TestBasic() {
 #endif
 #if LEVEL>=2
     {
-        Vector<char> foo("foo");
+        Vector<char> foo("foo"); //problem med jämförelser
         assert(foo.size() == 3);
         cout << foo;
         assert(foo == foo);
