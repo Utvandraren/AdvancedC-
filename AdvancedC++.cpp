@@ -6,7 +6,7 @@
 #endif  // _DEBUG
 
 #include <type_traits>
-#include "Vector.hpp"
+//#include "Vector.hpp"
 #include "VectIterTest.h"
 #include <iostream>
 #include <cassert>

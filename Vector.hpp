@@ -7,16 +7,13 @@
 template<class T>
 class Vector
 {
-	class Proxy
-	{
-		char* _ptr;
-	};
 
-	template<class X>
+
+	template<class X, int DIR>
 	class VectorItt
 	{
 		friend class Vector<T>;
-		T* _ptr;
+		X* _ptr;
 
 	public:
 
@@ -33,29 +30,31 @@ class Vector
 		~VectorItt() = default;
 		VectorItt(X* p) : _ptr(static_cast<T*>(const_cast<T*>(p))) { }
 		VectorItt() = default;
-		VectorItt(const VectorItt& other) : _ptr(other._ptr){}
+		VectorItt(const VectorItt& other) : _ptr(other._ptr) {}
 		VectorItt& operator= (const VectorItt& other) { _ptr = other._ptr; }
 
 		template<class Y, class = std::enable_if_t<!std::is_const_v<Y>>>     //const_iterator(iterator&)
-		VectorItt(const VectorItt<Y>& rhs) : _ptr(rhs._ptr) {}
+		VectorItt(const VectorItt<Y, DIR>& rhs) : _ptr(rhs._ptr) {}
 		template<class Y, class = std::enable_if_t<!std::is_const_v<Y>>>     //const_iterator& operator=(iterator&)
-		VectorItt& operator=(const VectorItt<Y>& rhs) { _ptr = rhs._ptr; }
+		VectorItt& operator=(const VectorItt<Y, DIR>& rhs) { _ptr = rhs._ptr; }
 #pragma endregion Constructors && Assignment
 
 #pragma region element access
 		X& operator* () { return *_ptr; }
-		X* operator-> () { return &_ptr; }
+		X* operator-> () { return _ptr; }
 		X& operator[](size_t i) { return _ptr[i]; }
 #pragma endregion element access
 
 
 #pragma region Modifiers    
 		VectorItt& operator++ () {  //more work to be done  here-----
-			++_ptr;
+			/*++_ptr;*/
+			_ptr += DIR;
 			return *this;
 		}
 		VectorItt& operator-- () {
-			--_ptr;
+			//--_ptr;
+			_ptr -= DIR;
 			return *this;
 		}
 		VectorItt operator++ (int) {
@@ -68,19 +67,25 @@ class Vector
 			operator--();
 			return temp;
 		}
-		VectorItt operator+ (difference_type i) const;
-		VectorItt operator- (difference_type i) const;
-		difference_type operator- (const VectorItt& other) const;
+		VectorItt operator+ (difference_type i) const {
+			return _ptr + (DIR * i);
+		}
+		VectorItt operator- (difference_type i) const {
+			return _ptr - (DIR * i);
+		}
+		difference_type operator- (const VectorItt& other){ //Confused by this overload, ask olle
+			return _ptr - other._ptr;
+		}
 #pragma endregion Modifiers
 
 #pragma region nonmembers
 		/*friend bool operator ==(const VectorItt& lhs, const VectorItt& rhs) = default;
 		friend bool operator !=(const VectorItt& lhs, const VectorItt& rhs) = default;*/
 
-		friend bool operator ==(const VectorItt& lhs, const VectorItt& rhs){
+		friend bool operator ==(const VectorItt& lhs, const VectorItt& rhs) {
 			return lhs._ptr == rhs._ptr;
 		}
-		friend bool operator !=(const VectorItt& lhs, const VectorItt& rhs){
+		friend bool operator !=(const VectorItt& lhs, const VectorItt& rhs) {
 			return lhs._ptr != rhs._ptr;
 		}
 		//Add all the other comparison operators here
@@ -89,11 +94,11 @@ class Vector
 	};
 
 private:
-	size_t _size = 0;
-	size_t _maxSize = 8;
 
 public:
 	T* _data;
+	size_t _size = 0;
+	size_t _maxSize = 8;
 
 #pragma region typedef //only iterators really neccessary!
 	using value_type = T;
@@ -105,24 +110,32 @@ public:
 	using const_pointer = const T*;
 	using size_type = size_t;
 	typedef const T* const_pointer;
-	using iterator = VectorItt<T>;
-	using const_iterator = VectorItt<const T>;
+	using iterator = VectorItt<T, 1>;
+	using const_iterator = VectorItt<const T, 1>;
+	using reviterator = VectorItt<T, -1>;
+	using const_reviterator = VectorItt<const T, -1>;
 #pragma endregion typedef
 
 #pragma region Constructors && Assignment
 	~Vector() = default;
-	Vector() noexcept {
-		_data[4];
+	Vector() noexcept { //Have to fix?
+		_data = new T[0];
+		_size = 0;
 		CHECK
-	}
+	} 
+	//Vector() noexcept = default;
+		
 	Vector(const Vector& other) {
 		_data = other._data;
 		_size = other.size();
+		CHECK
 	}
 	Vector(Vector&& other) noexcept {
-		
+		swap(*this, other);
+		CHECK
 	}
 	Vector(const char* other) { //DEBUG    //More effective way to do this?
+		_size = 0;
 		for (size_t i = 0; other[i] != '\0'; i++)
 		{
 			++_size;
@@ -133,16 +146,20 @@ public:
 		{
 			_data[i] = other[i];
 		}
-
+		CHECK
 	}
-	Vector& operator=(const Vector& other) {
+	Vector& operator=(const Vector& other) {   //Shouldnt use swap version, use assignment instead?
 		_data = other._data;
 		_size = other.size();
 		return *this;
-		
+
 	}
 	Vector& operator=(Vector&& other) noexcept {
-
+		this->_data = other._data;
+		_size = other.size();
+		other._data = new T[0];          //do this some other way?
+		other.resize(0);
+		return *this;
 	}
 #pragma endregion Constructors && Assignment
 
@@ -159,7 +176,7 @@ public:
 	iterator begin() noexcept { return iterator(_data); }
 	iterator end() noexcept { return iterator(_data + _size); }
 	const_iterator begin() const noexcept { return const_iterator(_data); }
-	const_iterator end() const noexcept { return const_iterator(_data + _size); } 
+	const_iterator end() const noexcept { return const_iterator(_data + _size); }
 	const_iterator cbegin() const noexcept { return const_iterator(_data); }
 	const_iterator cend() const noexcept { return const_iterator(_data + _size); }
 
@@ -168,28 +185,32 @@ public:
 
 #pragma region Capacity
 	size_t size() const noexcept { return _size; }
-	void reserve(size_t n) { _maxSize = n; } 
 	size_t capacity() const noexcept { return _maxSize; }
+	void reserve(size_t n) { _maxSize = n; }
 #pragma endregion Capacity
 
 #pragma region Modifiers
-	void shrink_to_fit() {
-		//TODO----------------------
-	}
-	void push_back(T c) {
+	void shrink_to_fit() { _maxSize = _size; }
+	void push_back(T c) {    //Change how it works---------------preoblems right nopw
 		if (size() == capacity()) {
 			resize(capacity() * 2);
 		}
 		_data[size()] = c;
-		++_size;
-
+		++_size;	
 	}
 	void resize(size_t n) {
-		T* temp = new T[n];
+		/*T* temp = new T[n];
 		for (size_t i = 0; i < size(); i++)
 		{
 			temp[i] = _data[i];
 		}
+		for (size_t i = size(); i < n; i++)
+		{
+			temp[i] =
+		}*/
+
+		auto temp = new T[n]{ *_data };
+
 		_size = n;
 		reserve(n);
 		_data = temp;
@@ -213,12 +234,12 @@ public:
 			return std::strong_ordering::greater;
 	}
 
-	
+
 	friend bool operator==(const Vector& lhs, const Vector& rhs) { return (lhs <=> rhs) == 0; }
 	friend bool operator!=(const Vector& lhs, const Vector& rhs) { return (lhs <=> rhs) != 0; }
 
-	template<class T>
-	friend void swap(Vector<T>& lhs, Vector<T>& rhs) {}
+
+
 #pragma endregion nonmembers
 
 #pragma region TestFunktion
@@ -241,5 +262,15 @@ public:
 	}
 #pragma endregion TestFunktion
 
-
 };
+
+template<class T>
+static void swap(Vector<T>& lhs, Vector<T>& rhs) {
+	auto temp = lhs._data;
+	lhs._data = rhs._data;
+	rhs._data = temp;
+
+	size_t tempsize = lhs.size();
+	lhs._size = rhs.size();
+	rhs._size = tempsize;
+}
