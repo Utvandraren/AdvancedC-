@@ -74,7 +74,7 @@ void TestBasic() {
         static_assert(std::is_const_v<std::remove_reference_t< decltype(bar2[0])>>, "fel med const i operator[]");
 
         foo.at(1);
-        bar.at(2);
+        bar2.at(2);
         foo.data();
 
     }

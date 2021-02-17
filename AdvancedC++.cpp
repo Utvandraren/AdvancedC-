@@ -29,6 +29,6 @@ int main() {
     new int;
     cout << "det finns en minnesläcka i main, avsiktligt!\n så ni kan se att er minnesläckstest fungerar\n";
     std::cin.get();
-
+    //Vector<int> test();
 }
 
