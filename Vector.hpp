@@ -214,20 +214,8 @@ public:
 #pragma region Capacity
 	size_t size() const noexcept { return _size; }
 	size_t capacity() const noexcept { return _maxSize; }
-	void reserve(size_t n) { _maxSize = n; }
-#pragma endregion Capacity
-
-#pragma region Modifiers
-	void shrink_to_fit() { _maxSize = _size; }
-	void push_back(T c) {	//-----------------------Forttsätt här
-		_data[size()] = c;
-		++_size;
-		if (size() > capacity()) {
-			resize(capacity());
-		}
-	}
-	void resize(size_t n) {
-		if (n > size())
+	void reserve(size_t n) { 
+		if (n > capacity())
 		{
 			T* temp = new T[n]{ *_data };
 			for (size_t i = 0; i < size(); i++)
@@ -235,7 +223,36 @@ public:
 				temp[i] = _data[i];
 			}
 			_data = temp;
-			//reserve(n * 2);
+		}
+		else if(n <= capacity())
+		{
+			return;
+		}
+		_maxSize = n; 
+	}
+#pragma endregion Capacity
+
+#pragma region Modifiers
+	void shrink_to_fit() { 
+		resize(_size);
+		_maxSize = _size;
+	}
+	void push_back(T c) {	
+		if (size() >= capacity()) {
+			resize(capacity());
+		}
+		_data[size()] = c;
+		++_size;		
+	}
+	void resize(size_t n) { 
+		if (n >= size())
+		{
+			T *temp = new T[n]{ *_data };
+			for (size_t i = 0; i < size(); i++)
+			{
+				temp[i] = _data[i];
+			}
+			_data = temp;
 		}
 		reserve(n * 4);
 		_size = n;
