@@ -2,10 +2,12 @@
 //
 
 #include <iostream>
+#include "Algorithms.hpp"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	int x2 = Algorithms::Add<3, 5>::value;
+	std::cout << x2 << std::endl;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
