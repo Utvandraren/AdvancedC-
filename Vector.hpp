@@ -14,7 +14,6 @@ class Vector
 		X* _ptr;
 
 	public:
-
 #pragma region types
 		using iterator_category = std::random_access_iterator_tag;
 		using value_type = T;
@@ -22,7 +21,6 @@ class Vector
 		using reference = X&;
 		using pointer = X*;
 #pragma endregion types
-
 
 #pragma region Constructors && Assignment
 		~VectorItt() = default;
@@ -45,7 +43,6 @@ class Vector
 		X* operator-> () const { return _ptr; }
 		X& operator[](size_t i) { return _ptr[i]; }
 #pragma endregion element access
-
 
 #pragma region Modifiers    
 		VectorItt& operator++ () {  //more work to be done  here-----
@@ -78,8 +75,6 @@ class Vector
 #pragma endregion Modifiers
 
 #pragma region nonmembers
-		/*friend bool operator ==(const VectorItt& lhs, const VectorItt& rhs) = default;
-		friend bool operator !=(const VectorItt& lhs, const VectorItt& rhs) = default;*/
 		friend auto operator<=>(const VectorItt& lhs, const VectorItt& rhs) {
 			if (lhs._ptr < rhs._ptr)
 				return std::strong_ordering::less;
@@ -88,24 +83,10 @@ class Vector
 
 			return std::strong_ordering::equivalent;
 		}
-
-		//friend bool operator ==(const VectorItt& lhs, const VectorItt& rhs) {
-		//	return lhs._ptr == rhs._ptr;
-		//}
-		//friend bool operator !=(const VectorItt& lhs, const VectorItt& rhs) {
-		//	return lhs._ptr != rhs._ptr;
-		//}
-
-
-
 		friend bool operator==(const VectorItt& lhs, const VectorItt& rhs) { return (lhs <=> rhs) == 0; }
 		friend bool operator!=(const VectorItt& lhs, const VectorItt& rhs) { return (lhs <=> rhs) != 0; }
-
 #pragma endregion nonmembers
-
 	};
-
-private:
 
 public:
 	T* _data;
@@ -124,61 +105,56 @@ public:
 	typedef const T* const_pointer;
 	using iterator = VectorItt<T, 1>;
 	using const_iterator = VectorItt<const T, 1>;
-	using rev_iterator = VectorItt<T, -1>;
-	using const_rev_iterator = VectorItt<const T, -1>;
+	using reverse_iterator = VectorItt<T, -1>;
+	using const_reverse_iterator = VectorItt<const T, -1>;
 #pragma endregion typedef
 
 #pragma region Constructors && Assignment
-	~Vector() = default;
-	Vector() noexcept { //Have to fix?
-		_data = new T[0];
-		_size = 0;
-		CHECK
+	~Vector() {	
+		delete[] _data;
+		_data = nullptr;
 	}
-	//Vector() noexcept = default;
 
-	Vector(const Vector& other) {
-		_data = other._data;
-		_size = other.size();
+	Vector() noexcept { 
+		_data = new T[_maxSize];
 		CHECK
 	}
-	Vector(Vector&& other) noexcept {
+
+	Vector(const Vector& other) : Vector() {
+		for (size_t i = 0; i != other.size(); i++)
+		{
+			push_back(other[i]);
+		}
+		CHECK
+	}
+	Vector(Vector&& other)  noexcept : Vector() {
 		swap(*this, other);
 		CHECK
 	}
-	Vector(const char* other) { //DEBUG    //More effective way to do this?
-		_size = 0;
+	Vector(const char* other) : Vector() { //DEBUG   		
 		for (size_t i = 0; other[i] != '\0'; i++)
 		{
-			++_size;
-		}
-		_data = new T[_size * 2];
-		//reserve(size() * 2);
-		for (size_t i = 0; other[i] != '\0'; i++)
-		{
-			_data[i] = other[i];
+			push_back(other[i]);
 		}
 		CHECK
 	}
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
 			return*this;
+		delete[] _data;
 		_data = new T[other.size() * 2];
+		_size = 0;
+		_maxSize = other.size() * 2;
 		for (size_t i = 0; i < other.size(); i++)
 		{
-			_data[i] = other._data[i];
+			push_back(other[i]);
 		}
-		_size = other.size();
-		_maxSize = other.capacity();
 		return *this;
 	}
-	Vector& operator=(Vector&& other) noexcept {
+	Vector& operator=(Vector&& other) noexcept { 
 		if (*this == other)
 			return*this;
-		this->_data = other._data;
-		_size = other.size();
-		other._data = new T[0];          //do this some other way?
-		other.resize(0);
+		swap(*this, other);
 		return *this;
 	}
 #pragma endregion Constructors && Assignment
@@ -207,8 +183,12 @@ public:
 	const_iterator end() const noexcept { return const_iterator(_data + _size); }
 	const_iterator cbegin() const noexcept { return const_iterator(_data); }
 	const_iterator cend() const noexcept { return const_iterator(_data + _size); }
-
-	//alla ovanför med "iterator" bytt mot "reverse_iterator"
+	reverse_iterator rbegin() noexcept { return reverse_iterator(_data); }
+	reverse_iterator rend() noexcept { return reverse_iterator(_data + _size); }
+	const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(_data); }
+	const_reverse_iterator rend() const noexcept { return const_reverse_iterator(_data + _size); }
+	const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(_data); }
+	const_reverse_iterator crend() const noexcept { return const_reverse_iterator(_data + _size); }
 #pragma endregion iterators
 
 #pragma region Capacity
@@ -222,6 +202,7 @@ public:
 			{
 				temp[i] = _data[i];
 			}
+			delete[] _data;
 			_data = temp;
 		}
 		else if(n <= capacity())
@@ -233,9 +214,16 @@ public:
 #pragma endregion Capacity
 
 #pragma region Modifiers
-	void shrink_to_fit() { 
-		resize(_size);
+	void shrink_to_fit() { //change array to eaxatly size()
 		_maxSize = _size;
+		T* temp = new T[_size]{ *_data };
+		for (size_t i = 0; i < capacity(); i++)
+		{
+			temp[i] = _data[i];
+		}
+		delete[] _data;
+		_data = temp;
+
 	}
 	void push_back(T c) {	
 		if (size() >= capacity()) {
@@ -252,6 +240,7 @@ public:
 			{
 				temp[i] = _data[i];
 			}
+			delete[] _data;
 			_data = temp;
 		}
 		reserve(n * 4);
@@ -308,11 +297,22 @@ public:
 
 template<class T>
 static void swap(Vector<T>& lhs, Vector<T>& rhs) {
-	auto temp = lhs._data;
+	/*T* temp = lhs._data;
 	lhs._data = rhs._data;
-	rhs._data = temp;
+	rhs._data = temp;*/
 
-	size_t tempsize = lhs.size();
+	std::swap(lhs._data, rhs._data);
+
+	/*size_t tempsize = lhs.size();
 	lhs._size = rhs.size();
-	rhs._size = tempsize;
+	rhs._size = tempsize;*/
+	
+	std::swap(lhs._size, rhs._size);
+
+	/*size_t tempCapacity = lhs.capacity();
+	lhs._maxSize = rhs.capacity();
+	rhs._maxSize = tempCapacity;*/
+
+	std::swap(lhs._maxSize, rhs._maxSize);
+
 }
