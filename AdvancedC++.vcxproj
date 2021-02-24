@@ -142,7 +142,8 @@
     <ClCompile Include="AdvancedC++.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Algorithms.hpp" />
+    <ClInclude Include="Adding.hpp" />
+    <ClInclude Include="Ackermann.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

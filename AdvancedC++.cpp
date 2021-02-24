@@ -1,22 +1,118 @@
-// AdvancedC++.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+#include <cassert>
+#define LEVEL 1
+#define VG true
 
-#include <iostream>
-#include "Algorithms.hpp"
+#if LEVEL>=1
+#include "Adding.hpp"
+void TestAdd() {
+    assert(Adding::AddFun(3, 5) == 8);
+    int x = Adding::Add<3, 5>::value;
+    assert((Adding::Add<3, 5>::value) == 8);
+}
+#endif
 
-int main()
-{
-	int x2 = Algorithms::Add<3, 5>::value;
-	std::cout << x2 << std::endl;
+#if LEVEL>=2
+#include "Ackermann.hpp"
+void TestAckermann() {
+    int x = Ackermann<0, 1>::value; //should be 2
+    x = Ackermann<1, 0>::value; //should be 2
+    assert((Ackermann<0, 1>::value == 2));
+    assert((Ackermann<1, 0>::value == 2));
+    assert((Ackermann<3, 4>::value == 125));
+    assert((Ackermann<4, 0>::value == 13));
+    //assert((Ackermann<4, 1>::value == 65533));
+}
+#endif
+
+#include <type_traits>
+#define AssertSame(X,Y) static_assert((std::is_same<X, Y>::value));
+
+#if LEVEL>=3
+#include "Simplify.hpp"
+
+void TestSimplify() {
+    AssertSame(int, SimplifyType<int*>::type);
+    AssertSame(int, SimplifyType_t<int*>);
+    AssertSame(int, SimplifyType_t<int&>);
+    //AssertSame(int, SimplifyType_t<int[]>);
+    AssertSame(int** const*, SimplifyType_t<int** const**>);
+    AssertSame(const int, SimplifyType_t<const int&>);
+}
+#endif
+
+#if LEVEL>=4
+#include "Simplify.hpp"
+
+void TestBase() {
+    AssertSame(int, int);
+    AssertSame(int, BaseType_t<int*>);
+    AssertSame(int, BaseType_t<int&>);
+    AssertSame(int, BaseType_t<int[]>);
+    //AssertSame(int, BaseType_t<int[6]>);
+    AssertSame(int, BaseType_t<int***&>);
+    AssertSame(int, BaseType_t<const int** const**&>);
+    AssertSame(BaseType_t<const int>, BaseType_t< BaseType_t<const int>**>);
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
+#endif
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+#if LEVEL>=5 && VG
+#include "RemAllConst.hpp"
+
+void TestRemoveAllConst() {
+    AssertSame(int, RAC<int>::type);
+    AssertSame(int, RAC<const int>::type);
+    AssertSame(int*, RAC<int*>::type);
+#pragma warning( push )
+#pragma warning( disable : 4114)
+    AssertSame(int***, RAC<const int const* const* const* const>::type);
+#pragma warning( pop ) 
+}
+#endif
+
+#if LEVEL>=6
+#include "Sum.hpp"
+void TestSum() {
+    std::vector<int> v = { 1,2,3,-9 };
+    int sum = Sum(v);
+    assert(sum == -3);
+}
+#endif
+
+#if LEVEL>=7
+#include "SFINAE.hpp"
+void TestSFINAE() {
+    int i(3);
+    assert(NoThrowCopyConstructible(i));
+    auto str = string("hej");
+    assert(!NoThrowCopyConstructible(str));
+}
+#endif
+
+
+#include <string>
+using std::string;
+
+int main() {
+#if LEVEL>=1
+    TestAdd();
+#endif
+#if LEVEL>=2
+    TestAckermann();
+#endif
+#if LEVEL>3
+    TestSimplify();
+#endif
+#if LEVEL>4
+    TestBase();
+#endif
+#if LEVEL>5 && VG
+    TestRemoveAllConst();
+#endif
+#if LEVEL>5 && VG
+    TestSum();
+#endif
+#if LEVEL>6
+    TestSFINAE();
+#endif
+}

@@ -1,9 +1,6 @@
-#include <iostream>
-
-class Algorithms
-{
+class Adding {
 public:
-	int AddFun(int x, int y) {
+	static int AddFun(int x, int y) {
 		if (x == 0)
 			return y;
 		else
@@ -19,15 +16,4 @@ public:
 	struct Add<0, Y> {
 		static const int value = Y;
 	};
-
-	/*template<int X, int Y, class = std::enable_if<(X == 0), void>>
-	struct Add {
-		static const int value = Y;
-	};*/
-
-	
-
-    
-
-  
 };

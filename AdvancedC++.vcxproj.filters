@@ -20,7 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Algorithms.hpp">
+    <ClInclude Include="Adding.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ackermann.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
