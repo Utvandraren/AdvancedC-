@@ -26,5 +26,8 @@
     <ClInclude Include="Ackermann.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Simplify.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

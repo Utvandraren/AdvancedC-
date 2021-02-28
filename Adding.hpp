@@ -1,5 +1,4 @@
-class Adding {
-public:
+
 	static int AddFun(int x, int y) {
 		if (x == 0)
 			return y;
@@ -8,12 +7,11 @@ public:
 	}
 
 	template <int X, int Y>
-	struct Add {
-		static const int value = Add<X - 1, Y + 1>::value;
+	struct Adding {
+		static const int value = Adding<X - 1, Y + 1>::value;
 	};
 
 	template<int Y>
-	struct Add<0, Y> {
+	struct Adding<0, Y> {
 		static const int value = Y;
 	};
-};

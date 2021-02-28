@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="Adding.hpp" />
     <ClInclude Include="Ackermann.hpp" />
+    <ClInclude Include="Simplify.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

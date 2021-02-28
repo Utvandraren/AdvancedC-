@@ -1,13 +1,13 @@
 #include <cassert>
-#define LEVEL 1
+#define LEVEL 2
 #define VG true
 
 #if LEVEL>=1
 #include "Adding.hpp"
 void TestAdd() {
-    assert(Adding::AddFun(3, 5) == 8);
-    int x = Adding::Add<3, 5>::value;
-    assert((Adding::Add<3, 5>::value) == 8);
+    assert(AddFun(3, 5) == 8);
+    int x = Adding<3, 5>::value;
+    assert((Adding<3, 5>::value) == 8);
 }
 #endif
 
@@ -20,6 +20,7 @@ void TestAckermann() {
     assert((Ackermann<1, 0>::value == 2));
     assert((Ackermann<3, 4>::value == 125));
     assert((Ackermann<4, 0>::value == 13));
+
     //assert((Ackermann<4, 1>::value == 65533));
 }
 #endif
