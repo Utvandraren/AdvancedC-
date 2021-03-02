@@ -45,7 +45,7 @@ class Vector
 #pragma endregion element access
 
 #pragma region Modifiers    
-		VectorItt& operator++ () {  //more work to be done  here-----
+		VectorItt& operator++ () {  
 			/*++_ptr;*/
 			_ptr += DIR;
 			return *this;
@@ -197,10 +197,14 @@ public:
 	void reserve(size_t n) { 
 		if (n > capacity())
 		{
-			T* temp = new T[n]{ *_data };
+			T* temp = new T[n];
 			for (size_t i = 0; i < size(); i++)
 			{
 				temp[i] = _data[i];
+			}
+			for (size_t i = size(); i < n; i++)
+			{
+				temp[i] = T();
 			}
 			delete[] _data;
 			_data = temp;
@@ -214,37 +218,46 @@ public:
 #pragma endregion Capacity
 
 #pragma region Modifiers
-	void shrink_to_fit() { //change array to eaxatly size()
+	void shrink_to_fit() { //change array to eaxatly size() KOLLA OM SIZE == CAPAXITY RETURN
+		if (size() == capacity()) {
+			return;
+		}
 		_maxSize = _size;
-		T* temp = new T[_size]{ *_data };
+		T* temp = new T[_size];
 		for (size_t i = 0; i < capacity(); i++)
 		{
 			temp[i] = _data[i];
 		}
 		delete[] _data;
 		_data = temp;
-
 	}
 	void push_back(T c) {	
 		if (size() >= capacity()) {
-			resize(capacity());
+			reserve(capacity() * 2);
 		}
 		_data[size()] = c;
-		++_size;		
+		++_size;	
+		CHECK
 	}
-	void resize(size_t n) { 
+	void resize(size_t n) { //fixa rezise allokaera bara om cap är mindre än N *Done
 		if (n >= size())
 		{
-			T *temp = new T[n]{ *_data };
-			for (size_t i = 0; i < size(); i++)
-			{
-				temp[i] = _data[i];
+			if (capacity() < n) {
+				T* temp = new T[n];
+				for (size_t i = 0; i < size(); i++)
+				{
+					temp[i] = _data[i];
+				}
+				delete[] _data;
+				_data = temp;
 			}
-			delete[] _data;
-			_data = temp;
-		}
-		reserve(n * 4);
-		_size = n;
+			for (size_t i = size(); i < n; i++)
+			{
+				_data[i] = T();
+			}		
+		}	
+		reserve(n * 2);
+		_size = n;	
 	}
 #pragma endregion Modifiers
 
@@ -265,12 +278,17 @@ public:
 			return std::strong_ordering::greater;
 	}
 
-
-	friend bool operator==(const Vector& lhs, const Vector& rhs) { return (lhs <=> rhs) == 0; }
-	friend bool operator!=(const Vector& lhs, const Vector& rhs) { return (lhs <=> rhs) != 0; }
-
-
-
+	friend bool operator==(const Vector& lhs, const Vector& rhs) {
+		if (lhs.size() != rhs.size()) {
+			return false;
+		}
+		return (lhs <=> rhs) == 0; 
+	}   
+	friend bool operator!=(const Vector& lhs, const Vector& rhs) {
+		if (lhs.size() != rhs.size()) {
+			return true;
+		} return (lhs <=> rhs) != 0;
+	}
 #pragma endregion nonmembers
 
 #pragma region TestFunktion
@@ -278,13 +296,12 @@ public:
 		assert(Invariant());
 	}
 
-	bool Invariant() const {  // Lägg till check såom kollar att inga nullptr hittas
+	bool Invariant() const {  // Lägg till check såom kollar att inga nullptr hittas kollar att om data är nullåtr ska vap vara 0
 		if (size() > capacity()) {
 			return false;
 		}
 		return true;
 	}
-
 
 	friend std::ostream& operator<<(std::ostream& cout, const Vector& other) {
 		for (size_t i = 0; i < other.size(); ++i)
@@ -292,27 +309,11 @@ public:
 		return cout;
 	}
 #pragma endregion TestFunktion
-
 };
 
 template<class T>
 static void swap(Vector<T>& lhs, Vector<T>& rhs) {
-	/*T* temp = lhs._data;
-	lhs._data = rhs._data;
-	rhs._data = temp;*/
-
 	std::swap(lhs._data, rhs._data);
-
-	/*size_t tempsize = lhs.size();
-	lhs._size = rhs.size();
-	rhs._size = tempsize;*/
-	
 	std::swap(lhs._size, rhs._size);
-
-	/*size_t tempCapacity = lhs.capacity();
-	lhs._maxSize = rhs.capacity();
-	rhs._maxSize = tempCapacity;*/
-
 	std::swap(lhs._maxSize, rhs._maxSize);
-
 }

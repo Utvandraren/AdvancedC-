@@ -197,7 +197,12 @@ void TestVector() {
         vecBar.shrink_to_fit();
         auto buf = vecBar.data();
         vecBar.resize(6);
-        assert(vecBar[2] == 'r' && vecBar[3] == 0 && vecBar[4] == 0 && vecBar[5] == 0);
+        assert(vecBar[2] == 'r');
+        assert (vecBar[3] == 0);
+        assert(vecBar[4] == 0);
+        assert(vecBar[5] == 0);
+       
+       
         assert(buf != vecBar.data() && vecBar.capacity() >= 6 && vecBar.size() == 6);
         buf = vecBar.data();
         vecBar.resize(5);
