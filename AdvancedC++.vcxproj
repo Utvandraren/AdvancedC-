@@ -88,6 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,7 +145,10 @@
   <ItemGroup>
     <ClInclude Include="Adding.hpp" />
     <ClInclude Include="Ackermann.hpp" />
+    <ClInclude Include="RemAllConst.hpp" />
+    <ClInclude Include="SFINAE.hpp" />
     <ClInclude Include="Simplify.hpp" />
+    <ClInclude Include="Sum.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

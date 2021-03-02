@@ -1,6 +1,6 @@
 #include <cassert>
-#define LEVEL 2
-#define VG true
+#define LEVEL 7
+#define VG false
 
 #if LEVEL>=1
 #include "Adding.hpp"
@@ -35,21 +35,22 @@ void TestSimplify() {
     AssertSame(int, SimplifyType<int*>::type);
     AssertSame(int, SimplifyType_t<int*>);
     AssertSame(int, SimplifyType_t<int&>);
-    //AssertSame(int, SimplifyType_t<int[]>);
+    AssertSame(int, SimplifyType_t<int[]>);
     AssertSame(int** const*, SimplifyType_t<int** const**>);
     AssertSame(const int, SimplifyType_t<const int&>);
+    
 }
 #endif
 
 #if LEVEL>=4
-#include "Simplify.hpp"
+//#include "Simplify.hpp"
 
 void TestBase() {
     AssertSame(int, int);
     AssertSame(int, BaseType_t<int*>);
     AssertSame(int, BaseType_t<int&>);
     AssertSame(int, BaseType_t<int[]>);
-    //AssertSame(int, BaseType_t<int[6]>);
+    AssertSame(int, BaseType_t<int[6]>);
     AssertSame(int, BaseType_t<int***&>);
     AssertSame(int, BaseType_t<const int** const**&>);
     AssertSame(BaseType_t<const int>, BaseType_t< BaseType_t<const int>**>);
@@ -73,25 +74,26 @@ void TestRemoveAllConst() {
 
 #if LEVEL>=6
 #include "Sum.hpp"
+#include <vector>
 void TestSum() {
     std::vector<int> v = { 1,2,3,-9 };
     int sum = Sum(v);
     assert(sum == -3);
 }
 #endif
+#include <string>
 
 #if LEVEL>=7
 #include "SFINAE.hpp"
 void TestSFINAE() {
     int i(3);
     assert(NoThrowCopyConstructible(i));
-    auto str = string("hej");
+    auto str = std::string("hej");
     assert(!NoThrowCopyConstructible(str));
 }
 #endif
 
 
-#include <string>
 using std::string;
 
 int main() {
@@ -101,19 +103,19 @@ int main() {
 #if LEVEL>=2
     TestAckermann();
 #endif
-#if LEVEL>3
+#if LEVEL>=3
     TestSimplify();
 #endif
-#if LEVEL>4
+#if LEVEL>=4
     TestBase();
 #endif
-#if LEVEL>5 && VG
+#if LEVEL>=5 && VG
     TestRemoveAllConst();
 #endif
-#if LEVEL>5 && VG
+#if LEVEL>=6
     TestSum();
 #endif
-#if LEVEL>6
+#if LEVEL>=7
     TestSFINAE();
 #endif
 }
