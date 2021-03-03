@@ -13,3 +13,8 @@ template<int N>    //m == 0
 struct Ackermann<0, N> {
 	static const int value = N + 1;
 };
+
+template<>
+struct Ackermann<0, 0> {
+	static const int value = 1;
+};

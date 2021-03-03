@@ -1,6 +1,6 @@
 #include <cassert>
 #define LEVEL 7
-#define VG false
+#define VG true
 
 #if LEVEL>=1
 #include "Adding.hpp"

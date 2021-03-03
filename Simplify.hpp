@@ -37,7 +37,6 @@ struct BaseType {
 	using type = T;
 };
 
-
 template<class T>
 using BaseType_t = typename BaseType<T>::type;
 
