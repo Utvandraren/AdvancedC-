@@ -19,8 +19,8 @@
  -BRUTEFORCE: Call the filter function directly without using a thread pool
  -THREADPOOL: Use thread pool with one job per tile
  */
-#define BRUTEFORCE
-//#define THREADPOOL
+//#define BRUTEFORCE
+#define THREADPOOL
 
 /*
  Thread count
