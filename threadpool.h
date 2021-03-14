@@ -11,7 +11,7 @@
 class ThreadPool {
 public:
     std::thread* _threads;
-    std::vector<std::function<void()>*> _queue;
+    std::vector<std::function<void()>> _queue;
     std::condition_variable cv;
     std::mutex mut;
     int _activeThreads = 0;
@@ -25,7 +25,7 @@ public:
             cv.wait(lock);
             if (isShuttingDown)
                 return;
-            function = *_queue.front();
+            function = _queue.front();
             _queue.erase(_queue.begin());
             function();    //Has to save the specific parameter you are calling too
         }
@@ -58,14 +58,19 @@ public:
         //send the function to a already ready thread --> how to keep the thread idle? just use the waitfunction?
 
         auto task = std::make_shared
-            < std::packaged_task<F> >           //What is the type of the providided work function, F?
+            <std::packaged_task<F()>>           //What is the type of the providided work function, F?
             (
                 std::bind(std::forward<F>(f),
                     std::forward<Args>(args)...)
-                );
-        std::future<F> future = task.get_future();  // get a future
+            );
+
+        //std::future<F> future = task.get_future();  // get a future
+        std::future<F> future = task->get_future();
+        
         std::unique_lock<std::mutex> lock(mut);
 
+        //_queue.push_back([task]() { (*task)(); });
+        //std::function workItem = ([task]() { (*task)(); });
         _queue.push_back([task]() { (*task)(); });
         cv.notify_one();
         return future;
