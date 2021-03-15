@@ -52,28 +52,17 @@ public:
     }
 
     template<class F, class... Args>
-    std::future<F> enqueue(F&& f, Args&&... args) {
+    auto enqueue(F&& f, Args&&... args) {
 
         //if there is not enough threads ready then put the function in the function queue
-        //send the function to a already ready thread --> how to keep the thread idle? just use the waitfunction?
+        //using return_type = std::invoke_result_t(F, Args...);
+        auto task = std::make_shared<std::packaged_task<decltype(f(args...))()>>(std::bind(std::forward<F>(f),std::forward<Args>(args)...));
 
-        auto task = std::make_shared
-            <std::packaged_task<F()>>           //What is the type of the providided work function, F?
-            (
-                std::bind(std::forward<F>(f),
-                    std::forward<Args>(args)...)
-            );
 
-        //std::future<F> future = task.get_future();  // get a future
-        std::future<F> future = task->get_future();
-        
-        std::unique_lock<std::mutex> lock(mut);
-
-        //_queue.push_back([task]() { (*task)(); });
-        //std::function workItem = ([task]() { (*task)(); });
-        _queue.push_back([task]() { (*task)(); });
+        std::function<void()> wrappedTask = [task]() { (*task)(); };
+        _queue.push_back(wrappedTask);
         cv.notify_one();
-        return future;
+        return task->get_future(); ;
     }
 
     //template<class F, class... Args>
