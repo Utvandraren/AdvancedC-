@@ -6,15 +6,18 @@
 //Man behöver kunna se att listan har rätt innehåll
 //Därför så har vi två testfunktioner
 
+#include "TestLevel.h"
+
 #include <cassert>
 #include <iostream>
 using std::cout;
 
-#include "TestLevel.h"
-
 #include "Vector.hpp"
 
-struct C { int i; };
+struct Cbasic {
+    int i;
+    Cbasic(int i):i(i){}
+};
 
 #define Vect Vector<char>
 #define FOX Vector<char> Fox("Fox");
@@ -25,15 +28,15 @@ struct C { int i; };
 void TestBasic() {
 #if LEVEL>=1
     {
-        Vector<char> l;
-        assert(l.size() == 0);
-        assert(l.capacity() >= 0);
-        assert(l.Invariant());
+        Vector<char> v;
+        assert(v.size() == 0);
+        assert(v.capacity() >= 0);
+        assert(v.Invariant());
     }
 #endif
 #if LEVEL>=2
     {
-        Vector<char> foo("foo"); 
+        Vector<char> foo("foo");
         assert(foo.size() == 3);
         cout << foo;
         assert(foo == foo);
@@ -49,7 +52,7 @@ void TestBasic() {
         assert(bar <= foo && !(bar >= foo));
         assert(bar <= bar && foo >= foo);
         Vector<char> fooa("fooa");
-        assert(foo<fooa && fooa>foo);
+        assert(foo<fooa&& fooa>foo);
     }
 #endif
 #if LEVEL>=4
@@ -75,7 +78,6 @@ void TestBasic() {
 
         foo.at(1);
         bar2.at(2);
-        foo.data();
 
     }
 #endif
@@ -98,10 +100,10 @@ void TestBasic() {
         FOX BAR;
         Vect Fox2(std::move(Fox));
         assert(Fox2.Invariant() && Fox.Invariant());
-        assert(Fox2 == "Fox" /*&& Fox == ""*/);
+        assert(Fox2 == "Fox" && Fox == "");
         Bar = std::move(Fox2);
         assert(Fox2.Invariant() && Bar.Invariant());
-        assert(Bar == "Fox" /*&& Fox2 == ""*/);
+        assert(Bar == "Fox" && Fox2 == "");
     }
 #endif
 #if LEVEL>=8
@@ -111,19 +113,21 @@ void TestBasic() {
         assert(Fox.capacity() == 100);
         Fox.shrink_to_fit();
         assert(Fox.capacity() == 3);
-       /* Fox.resize(10);
+        Fox.resize(10);
         assert(Fox.capacity() >= 10);
         assert(Fox.size() == 10);
         assert(Fox[9] == 0);
         Fox = "Fox";
         Bar = "Bar";
         swap(Fox, Bar);
-        assert(Fox == "Bar" && Bar == "Fox");*/
+        assert(Fox == "Bar" && Bar == "Fox");
     }
 #endif
 #if LEVEL>=9
     {
         FOX BAR;
+        Fox.data();
+        assert(&Fox[0] == Fox.data());
     }
 #endif
 
@@ -136,7 +140,21 @@ void TestBasic() {
         Vector<char>::iterator ite1 = foo.end();
         Vector<char>::iterator ite2 = bar.end();
         assert(it1 != ite1 && it2 == ite2);
-
+        const Vector<char> coo("coo");
+        {
+            Vector<char>::iterator it = foo.begin(); it = foo.end();
+        }
+        {
+            Vector<char>::reverse_iterator it = foo.rbegin(); it = foo.rend();
+        }
+        {
+            Vector<char>::const_iterator cit = foo.cbegin(); cit = foo.cend();
+            cit = coo.begin(); cit = coo.end();
+        }
+        {
+            Vector<char>::const_reverse_iterator cit = foo.crbegin(); cit = foo.crend();
+            cit = coo.rbegin(); cit = coo.rend();
+        }
     }
 #endif
 #if LEVEL>=11
@@ -151,8 +169,8 @@ void TestBasic() {
         *it1 = 'x';
         assert(*it1 == 'x');
 
-        Vector<C> clist;
-        clist.push_back(C{ 1 });
+        Vector<Cbasic> clist;
+        clist.push_back(Cbasic{ 1 });
         assert(clist.begin()->i == 1);
     }
 #endif
@@ -165,6 +183,40 @@ void TestBasic() {
         assert(*it1 == *it1--);
         assert(*it1 == *foo.begin());
         assert(*--it1 == *it1);
+
     }
+#endif
+#if LEVEL>=13
+    {
+        FOX BAR;
+        auto it=Fox.begin();
+        auto it2 = it;
+        it2 += 2; 
+        auto it3 = (it + 2);
+        assert(it2 == it3);
+        it2 = it2 - 2;
+        assert(it2 == it);
+        assert((it3 - it) == 2);
+
+    }
+#endif
+#if LEVEL>=20
+#ifdef VG_BETYG
+    {
+        Vector<int> v;
+        int i = 3;
+        v.push_back(std::move(i));
+        v.emplace_back(7);
+        assert(v.size() == 2);
+        assert(v[0] == 3 && v[1] == 7);
+        assert(v.emplace_back(9) == 9);
+    }
+    {
+        Vector<Cbasic> v;
+        v.emplace_back(7);
+        assert(v.size() == 1);
+        assert(v[0].i == 7);
+    }
+#endif
 #endif
 }

@@ -146,6 +146,8 @@
     <ClCompile Include="VectorTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Dalloc.hpp" />
+    <ClInclude Include="Dhelper.h" />
     <ClInclude Include="TestLevel.h" />
     <ClInclude Include="VectIterTest.h" />
     <ClInclude Include="Vector.hpp" />

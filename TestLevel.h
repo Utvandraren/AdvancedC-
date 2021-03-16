@@ -1,20 +1,23 @@
 #pragma once
+//Använd denna som allocator
+#include "Dalloc.hpp"
 
-#define LEVEL 99
-#define G
-//#define VG
+#define LEVEL 1
+#define G_BETYG
+//#define VG_BETYG
 
-//Tanken är att man höjer Level successivt till 12
+//Tanken är att man höjer Level successivt till sista nivån
 //Sen kan man sätta level till 99
-//    och definiera G så kör den riktiga testen igång.
+//    och definiera G_BETYG så kör den riktiga testen igång.
 //Observera att LEVEL testerna är mycket enkla
-//det är först G som blir en ordentlig test.
+//det är först G_BETYG som blir en ordentlig test.
 
 /* Så här är nivåerna man kan sätta på LEVEL
 #if false
 level 1
 Vector();
 size()
+capacity()
 Invariant();
 
 level 2
@@ -46,6 +49,10 @@ shrink_to_fit
 resize
 swap
 
+Level 9:
+data()
+typedefen testas inte!
+
 level 10
 VectorIter(const Link* node = nullptr)
 begin()
@@ -67,8 +74,15 @@ operator++(int)
 operator--
 operator--(int)
 
+level 13
+operator+=
+operator+
+operator-(it)
+operator-(int)
 #endif
 
-Observera att reverse_iterator inte testas i Basic Test!
+level 20
+emplace_back
+#endif
 
 */
