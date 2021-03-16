@@ -10,32 +10,32 @@
 
 class ThreadPool {
 public:
-    std::thread* _threads;
+    //std::thread* _threads;
+    std::vector<std::thread> _threads;
+
     std::vector<std::function<void()>> _queue;
     std::condition_variable cv;
     std::mutex mut;
-    int _activeThreads = 0;
-    size_t _maxThreads;
     bool isShuttingDown = false;
 
     void ThreadFunction() {
         std::function<void()> function;
-        while (true) {
+        while (!isShuttingDown) {
+
             std::unique_lock<std::mutex> lock(mut);
-            cv.wait(lock);
+            cv.wait(lock, [&] { return isShuttingDown || !_queue.empty(); });
             if (isShuttingDown)
                 return;
             function = _queue.front();
             _queue.erase(_queue.begin());
-            function();    //Has to save the specific parameter you are calling too
+            function();    
         }
     }
 
     ~ThreadPool() {
-        //Do more here?
         isShuttingDown = true;
         cv.notify_all();
-        for (size_t i = 0; i < _maxThreads; i++)
+        for (size_t i = 0; i < _threads.size(); i++)
         {
             _threads[i].join();
         }      
@@ -43,11 +43,9 @@ public:
 
     //used by main (you are free to change here and in main)
     ThreadPool(size_t threads) {
-        _maxThreads = threads;
-        _threads = new std::thread[threads];
         for (size_t i = 0; i < threads; i++)
         {
-            _threads[i] = std::thread([]() {while (true) {}});
+            _threads.push_back(std::thread([&]() { (ThreadFunction)(); }));
         }
     }
 
@@ -58,7 +56,7 @@ public:
         //using return_type = std::invoke_result_t(F, Args...);
         auto task = std::make_shared<std::packaged_task<decltype(f(args...))()>>(std::bind(std::forward<F>(f),std::forward<Args>(args)...));
 
-
+        std::unique_lock<std::mutex> lock(mut);
         std::function<void()> wrappedTask = [task]() { (*task)(); };
         _queue.push_back(wrappedTask);
         cv.notify_one();

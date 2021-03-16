@@ -40,10 +40,10 @@
  -GRAYSCALE: Set each color component to G(RGB).
  -SOBEL (edge detection): Convolve an area around the pixel with a Sobel kernel.
  */
-#define FILTER_GRAYSCALE
+//#define FILTER_GRAYSCALE
 //#define FILTER_INVERT
 //#define FILTER_BLUR
-//#define FILTER_SOBEL
+#define FILTER_SOBEL
 
 /*
  Gauss kernel size (applies only to FILTER_BLUR)
