@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cassert>
+#include "Dalloc.hpp"
 
 #define CHECK assert(Invariant());
 
@@ -92,6 +93,7 @@ public:
 	T* _data;
 	size_t _size = 0;
 	size_t _maxSize = 8;
+	Dalloc<T> _dAlloc;
 
 #pragma region typedef //only iterators really neccessary!
 	using value_type = T;
@@ -111,13 +113,21 @@ public:
 
 #pragma region Constructors && Assignment
 	~Vector() {	
-		delete[] _data;
-		_data = nullptr;
+		for (size_t i = 0; i < size(); ++i) {
+			_data[i].~T();
+		}
+		_dAlloc.deallocate(_data, capacity());
+		
 	}
 
 	Vector() noexcept { 
-		_data = new T[_maxSize];
+		_data = _dAlloc.allocate(_maxSize);         //The right way to do this?
 		CHECK
+	}
+
+	template<class Titer>
+	Vector(size_t newCapacity, Titer begin, Titer end) {
+
 	}
 
 	Vector(const Vector& other) : Vector() {
@@ -141,8 +151,10 @@ public:
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
 			return*this;
-		delete[] _data;
-		_data = new T[other.size() * 2];
+		//delete[] _data;
+		//_data = new T[other.size() * 2];
+		_dAlloc.deallocate(_data, capacity());
+		_data = _dAlloc.allocate(other.size() * 2);     //problem
 		_size = 0;
 		_maxSize = other.size() * 2;
 		for (size_t i = 0; i < other.size(); i++)
@@ -197,16 +209,18 @@ public:
 	void reserve(size_t n) { 
 		if (n > capacity())
 		{
-			T* temp = new T[n];
+			//T* temp = new T[n];
+			T* temp = _dAlloc.allocate(n);
 			for (size_t i = 0; i < size(); i++)
 			{
 				temp[i] = _data[i];
 			}
-			for (size_t i = size(); i < n; i++)
+			/*for (size_t i = size(); i < n; i++)
 			{
 				temp[i] = T();
-			}
-			delete[] _data;
+			}*/
+			//delete[] _data; 
+			_dAlloc.deallocate(_data, capacity());
 			_data = temp;
 		}
 		else if(n <= capacity())
@@ -218,17 +232,19 @@ public:
 #pragma endregion Capacity
 
 #pragma region Modifiers
-	void shrink_to_fit() { //change array to eaxatly size() KOLLA OM SIZE == CAPAXITY RETURN
+	void shrink_to_fit() { 
 		if (size() == capacity()) {
 			return;
 		}
 		_maxSize = _size;
-		T* temp = new T[_size];
+		//T* temp = new T[_size];
+		T* temp = _dAlloc.allocate(_maxSize);
 		for (size_t i = 0; i < capacity(); i++)
 		{
 			temp[i] = _data[i];
 		}
-		delete[] _data;
+		//delete[] _data;
+		_dAlloc.deallocate(_data, capacity());
 		_data = temp;
 	}
 	void push_back(T c) {	
@@ -243,12 +259,14 @@ public:
 		if (n >= size())
 		{
 			if (capacity() < n) {
-				T* temp = new T[n];
+				//T* temp = new T[n];
+				T* temp = _dAlloc.allocate(n);
 				for (size_t i = 0; i < size(); i++)
 				{
 					temp[i] = _data[i];
 				}
-				delete[] _data;
+				//delete[] _data;
+				_dAlloc.deallocate(_data, capacity());
 				_data = temp;
 			}
 			for (size_t i = size(); i < n; i++)
