@@ -121,14 +121,22 @@ public:
 	}
 
 	Vector() noexcept { 
-		_data = _dAlloc.allocate(_maxSize);         //The right way to do this?
+		_data = _dAlloc.allocate(_maxSize);        
 		CHECK
 	}
 
 	template<class Titer>
-	Vector(size_t newCapacity, Titer begin, Titer end) {
-
+	Vector(size_t newCapacity, Titer begin, Titer end) { //The right way to do this?
+		_data = _dAlloc.allocate(newCapacity);
+		auto i = begin;
+		int j = 0;
+		for (; i != end; ++i, ++j)
+		{
+			_data[j] = i;
+		}
+		
 	}
+
 
 	Vector(const Vector& other) : Vector() {
 		for (size_t i = 0; i != other.size(); i++)
@@ -214,7 +222,7 @@ public:
 			for (size_t i = 0; i < size(); i++)
 			{
 				temp[i] = _data[i];
-			}
+			} 
 			/*for (size_t i = size(); i < n; i++)
 			{
 				temp[i] = T();
