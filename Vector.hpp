@@ -218,17 +218,25 @@ public:
 		if (n > capacity())
 		{
 			//T* temp = new T[n];
-			T* temp = _dAlloc.allocate(n);
-			for (size_t i = 0; i < size(); i++)
-			{
-				temp[i] = _data[i];
-			} 
+			T* temp = _dAlloc.allocate(n);   //placmement new
+			
+
 			/*for (size_t i = size(); i < n; i++)
 			{
 				temp[i] = T();
 			}*/
+			for (size_t i = 0; i < size(); i++)
+			{
+				//temp[i] = _data[i];
+				new (temp + i)T(_data[i]);
+
+			} 
+			
+
 			//delete[] _data; 
-			_dAlloc.deallocate(_data, capacity());
+			_dAlloc.deallocate(_data, _maxSize);
+
+
 			_data = temp;
 		}
 		else if(n <= capacity())
@@ -244,26 +252,28 @@ public:
 		if (size() == capacity()) {
 			return;
 		}
-		_maxSize = _size;
 		//T* temp = new T[_size];
-		T* temp = _dAlloc.allocate(_maxSize);
-		for (size_t i = 0; i < capacity(); i++)
+		T* temp = _dAlloc.allocate(_size);
+		for (size_t i = 0; i < size(); i++)
 		{
-			temp[i] = _data[i];
+			//temp[i] = _data[i];
+			new (temp + i)T(_data[i]);
+
 		}
 		//delete[] _data;
-		_dAlloc.deallocate(_data, capacity());
+		_dAlloc.deallocate(_data, _maxSize);
+		_maxSize = _size;
 		_data = temp;
 	}
 	void push_back(T c) {	
 		if (size() >= capacity()) {
 			reserve(capacity() * 2);
 		}
-		_data[size()] = c;
+		new (_data + _size)T(c);
 		++_size;	
 		CHECK
 	}
-	void resize(size_t n) { //fixa rezise allokaera bara om cap är mindre än N *Done
+	void resize(size_t n) { 
 		if (n >= size())
 		{
 			if (capacity() < n) {
@@ -271,18 +281,22 @@ public:
 				T* temp = _dAlloc.allocate(n);
 				for (size_t i = 0; i < size(); i++)
 				{
-					temp[i] = _data[i];
+					//temp[i] = _data[i];
+					new (temp + i)T(_data[i]);
+
 				}
 				//delete[] _data;
 				_dAlloc.deallocate(_data, capacity());
 				_data = temp;
+				_maxSize = n;
+
 			}
-			for (size_t i = size(); i < n; i++)
-			{
-				_data[i] = T();
-			}		
+			//for (size_t i = size(); i < n; i++) //Ta bort?
+			//{
+			//	_data[i] = T();
+			//}		
 		}	
-		reserve(n * 2);
+		reserve(n * 2); //<----------------------
 		_size = n;	
 	}
 #pragma endregion Modifiers
