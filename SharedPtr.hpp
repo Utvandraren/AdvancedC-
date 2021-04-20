@@ -140,7 +140,8 @@ public:
 	template<class T>
 	friend void swap(SharedPtr<T>& lhs, SharedPtr<T>& rhs)noexcept
 	{
-
+		std::swap(lhs.ptr, rhs.ptr);
+		std::swap(lhs.counter, rhs.counter);
 	};
 
 	template<class T, class...Args>
