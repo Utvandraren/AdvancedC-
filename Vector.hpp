@@ -139,22 +139,43 @@ public:
 
 
 	Vector(const Vector& other) : Vector() {
-		for (size_t i = 0; i != other.size(); i++)
-		{
-			push_back(other[i]);
+		try {
+			for (size_t i = 0; i != other.size(); i++)
+			{
+				push_back(other[i]);
+			}
+			CHECK
 		}
-		CHECK
+		catch (...) {
+
+			for (size_t i = 0; i < size(); ++i) {
+				_data[i].~T();
+			}
+			_dAlloc.deallocate(_data, capacity());
+			throw;
+		}
+		
 	}
 	Vector(Vector&& other)  noexcept : Vector() {
 		swap(*this, other);
 		CHECK
 	}
 	Vector(const char* other) : Vector() { //DEBUG   		
-		for (size_t i = 0; other[i] != '\0'; i++)
-		{
-			push_back(other[i]);
+		try {
+			for (size_t i = 0; other[i] != '\0'; i++)
+			{
+				push_back(other[i]);
+			}
+			CHECK
 		}
-		CHECK
+		catch (...) {
+			for (size_t i = 0; i < size(); ++i) {
+				_data[i].~T();
+			}
+			_dAlloc.deallocate(_data, capacity());
+			throw;
+		}
+		
 	}
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
@@ -162,13 +183,25 @@ public:
 		//delete[] _data;
 		//_data = new T[other.size() * 2];
 		_dAlloc.deallocate(_data, capacity());
-		_data = _dAlloc.allocate(other.size() * 2);     //problem
+		_data = _dAlloc.allocate(other.size() * 2);     
 		_size = 0;
 		_maxSize = other.size() * 2;
-		for (size_t i = 0; i < other.size(); i++)
-		{
-			push_back(other[i]);
+		try {
+			for (size_t i = 0; i < other.size(); i++)
+			{
+				//push_back(other[i]);
+				new (_data + i)T(other[i]);
+				++_size;
+			}
 		}
+		catch (...) {
+			for (size_t i = 0; i < size(); ++i) {
+				_data[i].~T();
+			}
+			_dAlloc.deallocate(_data, capacity());
+			throw;
+		}
+		
 		return *this;
 	}
 	Vector& operator=(Vector&& other) noexcept { 
@@ -218,25 +251,29 @@ public:
 		if (n > capacity())
 		{
 			//T* temp = new T[n];
-			T* temp = _dAlloc.allocate(n);   //placmement new
-			
-
+			T* temp = _dAlloc.allocate(n);   //placmement new		
 			/*for (size_t i = size(); i < n; i++)
 			{
 				temp[i] = T();
 			}*/
-			for (size_t i = 0; i < size(); i++)
-			{
-				//temp[i] = _data[i];
-				new (temp + i)T(_data[i]);
+			try {
+				for (size_t i = 0; i < size(); i++)
+				{
+					//temp[i] = _data[i];
+					new (temp + i)T(_data[i]);
 
-			} 
-			
-
+				}
+			}
+			catch (...) {
+				for (size_t i = 0; i < size(); ++i) {
+					_data[i].~T();
+				}
+				_dAlloc.deallocate(_data, capacity());
+				throw;
+			}
+					
 			//delete[] _data; 
 			_dAlloc.deallocate(_data, _maxSize);
-
-
 			_data = temp;
 		}
 		else if(n <= capacity())
@@ -254,12 +291,22 @@ public:
 		}
 		//T* temp = new T[_size];
 		T* temp = _dAlloc.allocate(_size);
-		for (size_t i = 0; i < size(); i++)
-		{
-			//temp[i] = _data[i];
-			new (temp + i)T(_data[i]);
+		try {
+			for (size_t i = 0; i < size(); i++)
+			{
+				//temp[i] = _data[i];
+				new (temp + i)T(_data[i]);
 
+			}
 		}
+		catch (...) {
+			for (size_t i = 0; i < size(); ++i) {
+				_data[i].~T();
+			}
+			_dAlloc.deallocate(_data, capacity());
+			throw;
+		}
+		
 		//delete[] _data;
 		_dAlloc.deallocate(_data, _maxSize);
 		_maxSize = _size;
@@ -279,12 +326,22 @@ public:
 			if (capacity() < n) {
 				//T* temp = new T[n];
 				T* temp = _dAlloc.allocate(n);
-				for (size_t i = 0; i < size(); i++)
-				{
-					//temp[i] = _data[i];
-					new (temp + i)T(_data[i]);
+				try {
+					for (size_t i = 0; i < size(); i++)
+					{
+						//temp[i] = _data[i];
+						new (temp + i)T(_data[i]);
 
+					}
 				}
+				catch (...) {
+					for (size_t i = 0; i < size(); ++i) {
+						_data[i].~T();
+					}
+					_dAlloc.deallocate(_data, capacity());
+					throw;
+				}
+				
 				//delete[] _data;
 				_dAlloc.deallocate(_data, capacity());
 				_data = temp;
