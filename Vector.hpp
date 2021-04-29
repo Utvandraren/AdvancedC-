@@ -126,20 +126,38 @@ public:
 	}
 
 	template<class Titer>
-	Vector(size_t newCapacity, Titer begin, Titer end) { //The right way to do this?
-		_data = _dAlloc.allocate(newCapacity);
-		auto i = begin;
-		int j = 0;
-		for (; i != end; ++i, ++j)
-		{
-			_data[j] = i;
+	Vector(size_t newCapacity, const Titer& begin, const Titer& end) { 
+		_size = 0;
+		auto rhs_data = begin;
+		if (newCapacity == 0) {
+			_data = _dAlloc.allocate(2);
+			_maxSize = 2;
 		}
-		
+
+		else {
+			_data = _dAlloc.allocate(newCapacity);
+			_maxSize = newCapacity;
+		}
+		try {
+			for (; (rhs_data + _size) != end; ++_size)
+			{
+				new (_data + _size) T(rhs_data[_size]);
+			}
+			CHECK
+		}
+		catch (...) {
+
+			for (int k = 0; k <= _size; ++k) {
+				_data[k].~T();
+			}
+			_dAlloc.deallocate(_data, newCapacity);
+			throw;
+		}		
 	}
 
 
-	Vector(const Vector& other) : Vector() {
-		try {
+	Vector(const Vector& other) : Vector(other.size(), other.begin(), other.end()) {
+		/*try {
 			for (size_t i = 0; i != other.size(); i++)
 			{
 				push_back(other[i]);
@@ -154,14 +172,14 @@ public:
 			_dAlloc.deallocate(_data, capacity());
 			throw;
 		}
-		
+		*/
 	}
 	Vector(Vector&& other)  noexcept : Vector() {
 		swap(*this, other);
 		CHECK
 	}
-	Vector(const char* other) : Vector() { //DEBUG   		
-		try {
+	Vector(const char* other) : Vector(std::strlen(other), other, other + std::strlen(other)) { //DEBUG   		
+		/*try {
 			for (size_t i = 0; other[i] != '\0'; i++)
 			{
 				push_back(other[i]);
@@ -174,9 +192,12 @@ public:
 			}
 			_dAlloc.deallocate(_data, capacity());
 			throw;
-		}
+		}*/
+
+
 		
 	}
+
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
 			return*this;
@@ -266,9 +287,9 @@ public:
 			}
 			catch (...) {
 				for (size_t i = 0; i < size(); ++i) {
-					_data[i].~T();
+					temp[i].~T();
 				}
-				_dAlloc.deallocate(_data, capacity());
+				_dAlloc.deallocate(temp, capacity());
 				throw;
 			}
 					
@@ -316,7 +337,16 @@ public:
 		if (size() >= capacity()) {
 			reserve(capacity() * 2);
 		}
-		new (_data + _size)T(c);
+		try {
+			new (_data + _size)T(c);
+		}
+		catch (...) {
+	
+			//_dAlloc.deallocate(_data, capacity());
+			throw;
+
+		}
+
 		++_size;	
 		CHECK
 	}
