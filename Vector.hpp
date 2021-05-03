@@ -116,8 +116,7 @@ public:
 		for (size_t i = 0; i < size(); ++i) {
 			_data[i].~T();
 		}
-		_dAlloc.deallocate(_data, capacity());
-		
+		_dAlloc.deallocate(_data, capacity());	
 	}
 
 	Vector() noexcept { 
@@ -155,48 +154,14 @@ public:
 		}		
 	}
 
+	Vector(const Vector& other) : Vector(other.size(), other.begin(), other.end()) {}
 
-	Vector(const Vector& other) : Vector(other.size(), other.begin(), other.end()) {
-		/*try {
-			for (size_t i = 0; i != other.size(); i++)
-			{
-				push_back(other[i]);
-			}
-			CHECK
-		}
-		catch (...) {
-
-			for (size_t i = 0; i < size(); ++i) {
-				_data[i].~T();
-			}
-			_dAlloc.deallocate(_data, capacity());
-			throw;
-		}
-		*/
-	}
 	Vector(Vector&& other)  noexcept : Vector() {
 		swap(*this, other);
 		CHECK
 	}
-	Vector(const char* other) : Vector(std::strlen(other), other, other + std::strlen(other)) { //DEBUG   		
-		/*try {
-			for (size_t i = 0; other[i] != '\0'; i++)
-			{
-				push_back(other[i]);
-			}
-			CHECK
-		}
-		catch (...) {
-			for (size_t i = 0; i < size(); ++i) {
-				_data[i].~T();
-			}
-			_dAlloc.deallocate(_data, capacity());
-			throw;
-		}*/
 
-
-		
-	}
+	Vector(const char* other) : Vector(std::strlen(other), other, other + std::strlen(other)) {}
 
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
@@ -210,7 +175,6 @@ public:
 		try {
 			for (size_t i = 0; i < other.size(); i++)
 			{
-				//push_back(other[i]);
 				new (_data + i)T(other[i]);
 				++_size;
 			}
@@ -221,8 +185,7 @@ public:
 			}
 			_dAlloc.deallocate(_data, capacity());
 			throw;
-		}
-		
+		}	
 		return *this;
 	}
 	Vector& operator=(Vector&& other) noexcept { 
@@ -257,12 +220,12 @@ public:
 	const_iterator end() const noexcept { return const_iterator(_data + _size); }
 	const_iterator cbegin() const noexcept { return const_iterator(_data); }
 	const_iterator cend() const noexcept { return const_iterator(_data + _size); }
-	reverse_iterator rbegin() noexcept { return reverse_iterator(_data); }
-	reverse_iterator rend() noexcept { return reverse_iterator(_data + _size); }
-	const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(_data); }
-	const_reverse_iterator rend() const noexcept { return const_reverse_iterator(_data + _size); }
-	const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(_data); }
-	const_reverse_iterator crend() const noexcept { return const_reverse_iterator(_data + _size); }
+	reverse_iterator rbegin() noexcept { return reverse_iterator(_data + _size); }
+	reverse_iterator rend() noexcept { return reverse_iterator(_data); }
+	const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(_data + _size); }
+	const_reverse_iterator rend() const noexcept { return const_reverse_iterator(_data); }
+	const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(_data + _size); }
+	const_reverse_iterator crend() const noexcept { return const_reverse_iterator(_data); }
 #pragma endregion iterators
 
 #pragma region Capacity
@@ -271,18 +234,11 @@ public:
 	void reserve(size_t n) { 
 		if (n > capacity())
 		{
-			//T* temp = new T[n];
-			T* temp = _dAlloc.allocate(n);   //placmement new		
-			/*for (size_t i = size(); i < n; i++)
-			{
-				temp[i] = T();
-			}*/
+			T* temp = _dAlloc.allocate(n);   
 			try {
 				for (size_t i = 0; i < size(); i++)
 				{
-					//temp[i] = _data[i];
 					new (temp + i)T(_data[i]);
-
 				}
 			}
 			catch (...) {
@@ -291,9 +247,7 @@ public:
 				}
 				_dAlloc.deallocate(temp, capacity());
 				throw;
-			}
-					
-			//delete[] _data; 
+			}				
 			_dAlloc.deallocate(_data, _maxSize);
 			_data = temp;
 		}
@@ -310,14 +264,11 @@ public:
 		if (size() == capacity()) {
 			return;
 		}
-		//T* temp = new T[_size];
 		T* temp = _dAlloc.allocate(_size);
 		try {
 			for (size_t i = 0; i < size(); i++)
 			{
-				//temp[i] = _data[i];
 				new (temp + i)T(_data[i]);
-
 			}
 		}
 		catch (...) {
@@ -326,9 +277,7 @@ public:
 			}
 			_dAlloc.deallocate(_data, capacity());
 			throw;
-		}
-		
-		//delete[] _data;
+		}	
 		_dAlloc.deallocate(_data, _maxSize);
 		_maxSize = _size;
 		_data = temp;
@@ -341,49 +290,42 @@ public:
 			new (_data + _size)T(c);
 		}
 		catch (...) {
-	
-			//_dAlloc.deallocate(_data, capacity());
+			_data[_size].~T();
 			throw;
-
 		}
 
 		++_size;	
 		CHECK
 	}
 	void resize(size_t n) { 
-		if (n >= size())
+		if (n >= _size)
 		{
 			if (capacity() < n) {
-				//T* temp = new T[n];
 				T* temp = _dAlloc.allocate(n);
 				try {
-					for (size_t i = 0; i < size(); i++)
+					for (size_t i = 0; i < _size; i++)
 					{
-						//temp[i] = _data[i];
 						new (temp + i)T(_data[i]);
-
+					}
+					for (size_t i = _size; i < n; i++)
+					{
+						new (temp + i)T();
 					}
 				}
 				catch (...) {
-					for (size_t i = 0; i < size(); ++i) {
+					for (size_t i = 0; i < _size; ++i) {
 						_data[i].~T();
 					}
 					_dAlloc.deallocate(_data, capacity());
 					throw;
 				}
-				
-				//delete[] _data;
 				_dAlloc.deallocate(_data, capacity());
 				_data = temp;
 				_maxSize = n;
 
 			}
-			//for (size_t i = size(); i < n; i++) //Ta bort?
-			//{
-			//	_data[i] = T();
-			//}		
 		}	
-		reserve(n * 2); //<----------------------
+		reserve(n * 2); 
 		_size = n;	
 	}
 #pragma endregion Modifiers
