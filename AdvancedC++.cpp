@@ -1,30 +1,27 @@
-// AdvancedC++.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
-#ifndef DBG_NEW
-#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
-#define new DBG_NEW
-#endif
-// _DEBUG
-
-#include <cassert>
+#include "Config.h"
 
 #include <iostream>
-#include "SharedPtr.hpp"
-
-int main()
-{
-#ifdef DBG_NEW
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif
-
-	assert(!testPtr);
-	SharedPtr<std::string> testPtr = SharedPtr<std::string>();
-	assert(testPtr);
-	new int;
+using std::cout;
 
 
-	std::cout << "Code finished!" << std::endl;
+void TestG();
+void TestVGWeak();
+void TestVG();
 
+int main() {
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    std::locale::global(std::locale("swedish"));
+
+    TestG();
+    cout << "Test for G finished\n";
+
+#ifdef  VGBETYG
+    TestVG();
+    TestVGWeak();
+
+    cout << "Test for VG finished\n";
+#endif //  VGBETYG
+    new int; cout << "you should get a memory leak (new int)\n";
+    //    std::cin.get();
 }
 

@@ -6,80 +6,81 @@
 template<class T>
 class SharedPtr 
 {
-	T* ptr;
+	T* _ptr;
 	int* counter;
 
 
 public:
 	~SharedPtr(){
 		if (*counter == 1) {
-			delete ptr;
+			delete _ptr;
 			delete counter;
-			ptr = nullptr;
+			_ptr = nullptr;
 			counter = nullptr;
 		}
 		else
 		{
-			ptr = nullptr;
+			_ptr = nullptr;
 			counter = nullptr;
 			--counter;
 		}
 	}
 
 	SharedPtr(){
-		ptr = nullptr;
+		_ptr = nullptr;
 		counter = new int(1);
 	}
 
 	explicit SharedPtr(T* ptr){
-		this.ptr = ptr;
+		ptr = ptr;
 		counter = new int(1);
 	}
 
-	SharedPtr(const std::nullptr_t ptr) {
-		this->ptr = ptr;
+	SharedPtr( std::nullptr_t ptr) {
+		_ptr = ptr;
 		counter = new int(1);
 	}
 
-	SharedPtr(const SharedPtr& rhs) {
-		ptr = rhs.ptr;
+	SharedPtr( SharedPtr& rhs) {
+		_ptr = rhs._ptr;
 		counter = rhs.counter;
-		++*counter;
+		++* counter;
+
 	}
 
-	SharedPtr(const SharedPtr&& rhs) {
-		ptr = rhs.ptr;
+	SharedPtr( SharedPtr&& rhs) {
+		_ptr = rhs._ptr;
 		counter = rhs.counter;
-		rhs.ptr = nullptr;
+		rhs._ptr = nullptr;
 		rhs.counter = new int(1);
 	}
 
 	SharedPtr& operator=(const SharedPtr& other) {
-		if (ptr == other.ptr) {
+		if (_ptr == other._ptr) {
 			return *this;
         }
 		
-		delete[] ptr;
-		ptr = other.ptr;
+		delete[] _ptr;
+		_ptr = other._ptr;
 		counter = other.counter;
 		++* counter;
 		return *this;
 	}
 
 	T& operator*() {   
-		return *ptr;
+		return *_ptr;
 	}
 
 	T* operator->() {     
-		return ptr;
+		return _ptr;
 	}
 
 	explicit operator bool() const{
-		return ptr != nullptr;
+		return _ptr != nullptr;
 	}
 
 	friend auto operator<=>(const SharedPtr& lhs, const SharedPtr& rhs) {
-		auto lIt = lhs.ptr; auto rIt = rhs.ptr;		
+		auto lIt = lhs._ptr; auto rIt = rhs._ptr;		
 		if (*lIt < *rIt)
 			return std::strong_ordering::less;
 		else if (*lIt > *rIt)
@@ -89,7 +90,7 @@ public:
 	}
 
 	friend auto operator<=>(const SharedPtr& lhs, const std::nullptr_t rhs) {
-		auto lIt = lhs.ptr; auto rIt = rhs.ptr;
+		auto lIt = lhs._ptr; auto rIt = rhs.ptr;
 		if (*lIt < *rIt)
 			return std::strong_ordering::less;
 		else if (*lIt > *rIt)
@@ -112,12 +113,12 @@ public:
 	}
 
 	void reset() {
-		delete ptr;
-		ptr = nullptr;
+		delete _ptr;
+		_ptr = nullptr;
 	}
 
 	T* get() const{
-		return ptr;
+		return _ptr;
 	}
 
 	size_t use_count() {
@@ -139,20 +140,19 @@ public:
 #pragma region nonmembers
 
 	template<class T>
-	friend void swap(SharedPtr<T>& lhs, SharedPtr<T>& rhs)noexcept
+	friend void swap(SharedPtr<T>& lhs, SharedPtr<T>& rhs) noexcept
 	{
-		std::swap(lhs.ptr, rhs.ptr);
+		std::swap(lhs._ptr, rhs._ptr);
 		std::swap(lhs.counter, rhs.counter);
-	};
-
-	template<class T, class...Args>
-	friend SharedPtr<T>MakeShared(Args&&...args)
-	{
-
 	}
 
-	
 #pragma endregion nonmembers
 
-
 };
+
+template<class T, class...Args>
+static SharedPtr<T>MakeShared(Args&&...args)
+{	
+	T* p = new T(args...);
+	return SharedPtr<T>(p);
+}
