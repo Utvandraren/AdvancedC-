@@ -25,9 +25,9 @@ class Vector
 
 #pragma region Constructors && Assignment
 		~VectorItt() = default;
-		VectorItt(X* p) : _ptr(static_cast<T*>(const_cast<T*>(p))) { }
-		VectorItt() = default;
-		VectorItt(const VectorItt& other) : _ptr(other._ptr) {}
+		VectorItt(X* p) noexcept : _ptr(static_cast<T*>(const_cast<T*>(p)))  { }
+		VectorItt() noexcept = default;
+		VectorItt(const VectorItt& other) noexcept : _ptr(other._ptr) {}
 		VectorItt& operator= (const VectorItt& other) {
 			_ptr = other._ptr;
 			return *this;
@@ -40,43 +40,41 @@ class Vector
 #pragma endregion Constructors && Assignment
 
 #pragma region element access
-		X& operator* () const { return *_ptr; }
-		X* operator-> () const { return _ptr; }
-		X& operator[](size_t i) { return _ptr[i]; }
+		X& operator* () const noexcept { return *_ptr; }
+		X* operator-> () const noexcept { return _ptr; }
+		X& operator[](size_t i) const noexcept { return _ptr[i]; }
 #pragma endregion element access
 
 #pragma region Modifiers    
-		VectorItt& operator++ () {  
-			/*++_ptr;*/
+		VectorItt& operator++ ()noexcept {
 			_ptr += DIR;
 			return *this;
 		}
-		VectorItt& operator-- () {
-			//--_ptr;
+		VectorItt& operator-- () noexcept {
 			_ptr -= DIR;
 			return *this;
 		}
-		VectorItt operator++ (int) {
+		VectorItt operator++ (int) noexcept {
 			auto temp(*this);
 			operator++();
 			return temp;
 		}
-		VectorItt operator-- (int) {
+		VectorItt operator-- (int) noexcept {
 			auto temp(*this);
 			operator--();
 			return temp;
 		}
-		VectorItt& operator += (difference_type i) {
+		VectorItt& operator +=  (difference_type i) noexcept  {
 			_ptr += (DIR * i);
 			return *this;
 		}
-		VectorItt operator+ (difference_type i) const { return _ptr + (DIR * i); }
-		VectorItt operator- (difference_type i) const { return _ptr - (DIR * i); }
-		difference_type operator- (const VectorItt& other)const { return _ptr - other._ptr; }
+		VectorItt operator+ (difference_type i) const noexcept { return _ptr + (DIR * i); }
+		VectorItt operator- (difference_type i) const noexcept { return _ptr - (DIR * i); }
+		difference_type operator- (const VectorItt& other)const noexcept { return _ptr - other._ptr; }
 #pragma endregion Modifiers
 
 #pragma region nonmembers
-		friend auto operator<=>(const VectorItt& lhs, const VectorItt& rhs) {
+		friend auto operator<=>(const VectorItt& lhs, const VectorItt& rhs) noexcept {
 			if (lhs._ptr < rhs._ptr)
 				return std::strong_ordering::less;
 			else if (lhs._ptr > rhs._ptr)
@@ -112,7 +110,7 @@ public:
 #pragma endregion typedef
 
 #pragma region Constructors && Assignment
-	~Vector() {	
+	~Vector() noexcept {
 		for (size_t i = 0; i < size(); ++i) {
 			_data[i].~T();
 		}
@@ -173,10 +171,9 @@ public:
 		_size = 0;
 		_maxSize = other.size() * 2;
 		try {
-			for (size_t i = 0; i < other.size(); i++)
+			for (; _size < other.size(); _size++)
 			{
-				new (_data + i)T(other[i]);
-				++_size;
+				new (_data + _size)T(other[_size]);
 			}
 		}
 		catch (...) {
@@ -235,14 +232,15 @@ public:
 		if (n > capacity())
 		{
 			T* temp = _dAlloc.allocate(n);   
+			int tempSize = 0;
 			try {
-				for (size_t i = 0; i < size(); i++)
+				for (; tempSize <= size(); tempSize++)
 				{
-					new (temp + i)T(_data[i]);
+					new (temp + tempSize)T(_data[tempSize]);
 				}
 			}
 			catch (...) {
-				for (size_t i = 0; i < size(); ++i) {
+				for (size_t i = 0; i < tempSize; ++i) {
 					temp[i].~T();
 				}
 				_dAlloc.deallocate(temp, capacity());
@@ -265,14 +263,15 @@ public:
 			return;
 		}
 		T* temp = _dAlloc.allocate(_size);
+		int tempSize = 0;
 		try {
-			for (size_t i = 0; i < size(); i++)
+			for (; tempSize <= size(); tempSize++)
 			{
-				new (temp + i)T(_data[i]);
+				new (temp + tempSize)T(_data[tempSize]);
 			}
 		}
 		catch (...) {
-			for (size_t i = 0; i < size(); ++i) {
+			for (size_t i = 0; i < tempSize; ++i) {
 				_data[i].~T();
 			}
 			_dAlloc.deallocate(_data, capacity());
@@ -302,18 +301,19 @@ public:
 		{
 			if (capacity() < n) {
 				T* temp = _dAlloc.allocate(n);
+				int tempSize = 0;
 				try {
-					for (size_t i = 0; i < _size; i++)
+					for (; tempSize <= _size; tempSize++)
 					{
-						new (temp + i)T(_data[i]);
+						new (temp + tempSize)T(_data[tempSize]);
 					}
-					for (size_t i = _size; i < n; i++)
+					for (; tempSize < n; tempSize++)
 					{
-						new (temp + i)T();
+						new (temp + tempSize)T();
 					}
 				}
 				catch (...) {
-					for (size_t i = 0; i < _size; ++i) {
+					for (size_t i = 0; i < tempSize; ++i) {
 						_data[i].~T();
 					}
 					_dAlloc.deallocate(_data, capacity());
@@ -365,9 +365,14 @@ public:
 		assert(Invariant());
 	}
 
-	bool Invariant() const {  // Lägg till check såom kollar att inga nullptr hittas kollar att om data är nullåtr ska vap vara 0
+	bool Invariant() const {  
 		if (size() > capacity()) {
 			return false;
+		}
+		for (auto p = begin(); p != end(); p++)
+		{
+			if (p == nullptr)
+				return false;
 		}
 		return true;
 	}
