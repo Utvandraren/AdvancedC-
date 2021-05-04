@@ -20,9 +20,7 @@ public:
 		}
 		else
 		{
-			_ptr = nullptr;
-			counter = nullptr;
-			--counter;
+			--*counter;
 		}
 	}
 
@@ -44,7 +42,7 @@ public:
 	SharedPtr( SharedPtr& rhs) {
 		_ptr = rhs._ptr;
 		counter = rhs.counter;
-		++* counter;
+		++*counter;
 
 	}
 
@@ -59,7 +57,7 @@ public:
 		if (_ptr == other._ptr) {
 			return *this;
         }		
-		delete[] _ptr;
+		this->~SharedPtr();
 		_ptr = other._ptr;
 		counter = other.counter;
 		++* counter;
