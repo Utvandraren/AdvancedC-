@@ -1,6 +1,6 @@
 
 
-
+#define CHECK assert(Invariant());
 
 
 template<class T>
@@ -8,6 +8,7 @@ class SharedPtr
 {
 	T* ptr;
 	int* counter;
+
 
 public:
 	~SharedPtr(){
@@ -125,7 +126,7 @@ public:
 
 
 	bool Invariant() {
-
+		assert(*counter != nullptr);
 	}
 
 
