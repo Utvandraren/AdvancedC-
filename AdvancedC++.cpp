@@ -13,6 +13,7 @@ int main() {
     std::locale::global(std::locale("swedish"));
 
     TestG();
+    new int(1);
     cout << "Test for G finished\n";
 
 #ifdef  VGBETYG

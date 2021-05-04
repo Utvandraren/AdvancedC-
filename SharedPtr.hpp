@@ -36,7 +36,7 @@ public:
 		counter = new int(1);
 	}
 
-	SharedPtr( std::nullptr_t ptr) {
+	SharedPtr(nullptr_t ptr) {
 		_ptr = ptr;
 		counter = new int(1);
 	}
@@ -58,8 +58,7 @@ public:
 	SharedPtr& operator=(const SharedPtr& other) {
 		if (_ptr == other._ptr) {
 			return *this;
-        }
-		
+        }		
 		delete[] _ptr;
 		_ptr = other._ptr;
 		counter = other.counter;
@@ -89,7 +88,7 @@ public:
 			return std::strong_ordering::equivalent;
 	}
 
-	friend auto operator<=>(const SharedPtr& lhs, const std::nullptr_t rhs) {
+	friend auto operator<=>(const SharedPtr& lhs, const nullptr_t rhs) {
 		auto lIt = lhs._ptr; auto rIt = rhs.ptr;
 		if (*lIt < *rIt)
 			return std::strong_ordering::less;
@@ -102,13 +101,13 @@ public:
 	bool operator==(const SharedPtr& rhs) {
 		return (this <=> rhs) == 0;
 	}
-	bool operator==(const std::nullptr_t rhs) {
+	bool operator==(const nullptr_t rhs) {
 		return (this <=> rhs) == 0;
 	}
 	bool operator!=(const SharedPtr& rhs) {		
 		return (this <=> rhs) != 0;
 	}
-	bool operator!=( const std::nullptr_t rhs) {
+	bool operator!=( const nullptr_t rhs) {
 		return (this <=> rhs) != 0;
 	}
 
@@ -130,13 +129,6 @@ public:
 		assert(*counter != nullptr);
 	}
 
-
-
-
-
-
-
-
 #pragma region nonmembers
 
 	template<class T>
@@ -153,6 +145,5 @@ public:
 template<class T, class...Args>
 static SharedPtr<T>MakeShared(Args&&...args)
 {	
-	T* p = new T(args...);
-	return SharedPtr<T>(p);
+	return SharedPtr<T>(new T(args...));
 }
