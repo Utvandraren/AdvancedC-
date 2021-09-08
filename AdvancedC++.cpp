@@ -18,8 +18,8 @@ void TestPushBack();
 void TestBasic();
 void TestVector();
 void TestIter();
-//void TestIterInAlg();
-//void TestRevIterInAlg();
+void TestIterInAlg();
+void TestRevIterInAlg();
 
 int main() {
 #ifdef DBG_NEW
@@ -52,9 +52,9 @@ int main() {
     TestBasic();
     TestVector();
     TestIter();
-    //TestIterInAlg();
-    //TestRevIterInAlg();
+    TestIterInAlg();
+    TestRevIterInAlg();
 
-//    Dalloc<double>().allocate(1); cout << "det finns en minnesläcka i main, avsiktligt!\n så ni kan se att er minnesläckstest fungerar\n";
-    //std::cin.get();
+ //   Dalloc<double>().allocate(1); cout << "det finns en minnesläcka i main, avsiktligt!\n så ni kan se att er minnesläckstest fungerar\n";
+    std::cin.get();
 }

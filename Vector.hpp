@@ -25,7 +25,7 @@ class Vector
 
 #pragma region Constructors && Assignment
 		~VectorItt() = default;
-		VectorItt(X* p) noexcept : _ptr(static_cast<T*>(const_cast<T*>(p)))  { }
+		VectorItt(X* p) noexcept : _ptr(static_cast<T*>(const_cast<T*>(p))) { }
 		VectorItt() noexcept = default;
 		VectorItt(const VectorItt& other) noexcept : _ptr(other._ptr) {}
 		VectorItt& operator= (const VectorItt& other) {
@@ -64,13 +64,13 @@ class Vector
 			operator--();
 			return temp;
 		}
-		VectorItt& operator +=  (difference_type i) noexcept  {
+		VectorItt& operator +=  (difference_type i) noexcept {
 			_ptr += (DIR * i);
 			return *this;
 		}
 		VectorItt operator+ (difference_type i) const noexcept { return _ptr + (DIR * i); }
 		VectorItt operator- (difference_type i) const noexcept { return _ptr - (DIR * i); }
-		difference_type operator- (const VectorItt& other)const noexcept { return _ptr - other._ptr; }
+		difference_type operator- (const VectorItt& other)const noexcept { return (_ptr - other._ptr) * DIR; }
 #pragma endregion Modifiers
 
 #pragma region nonmembers
@@ -90,7 +90,7 @@ class Vector
 public:
 	T* _data;
 	size_t _size = 0;
-	size_t _maxSize = 8;
+	size_t _maxSize = 0;
 	Dalloc<T> _dAlloc;
 
 #pragma region typedef //only iterators really neccessary!
@@ -114,42 +114,46 @@ public:
 		for (size_t i = 0; i < size(); ++i) {
 			_data[i].~T();
 		}
-		_dAlloc.deallocate(_data, capacity());	
+		_dAlloc.deallocate(_data, capacity());
 	}
 
-	Vector() noexcept { 
-		_data = _dAlloc.allocate(_maxSize);        
+	Vector() noexcept {    //TODO: Fix so the data when null is handled by the code
+		_data = nullptr;
 		CHECK
 	}
 
 	template<class Titer>
-	Vector(size_t newCapacity, const Titer& begin, const Titer& end) { 
+	Vector(size_t newCapacity, const Titer& begin, const Titer& end) {
 		_size = 0;
+		_maxSize = newCapacity;
 		auto rhs_data = begin;
-		if (newCapacity == 0) {
-			_data = _dAlloc.allocate(2);
-			_maxSize = 2;
-		}
+		_data = _dAlloc.allocate(newCapacity);
+		//if (newCapacity == 0) {
+		//	_data = _dAlloc.allocate(2);
+		//	_maxSize = 2;
+		//}
 
-		else {
-			_data = _dAlloc.allocate(newCapacity);
-			_maxSize = newCapacity;
-		}
+		//else {
+		//	_data = _dAlloc.allocate(newCapacity); //-----------------------
+		//	_maxSize = newCapacity;
+		//} 
 		try {
+
 			for (; (rhs_data + _size) != end; ++_size)
 			{
 				new (_data + _size) T(rhs_data[_size]);
 			}
-			CHECK
+
 		}
 		catch (...) {
 
-			for (int k = 0; k <= _size; ++k) {
+			for (size_t k = 0; k < _size; ++k) {
 				_data[k].~T();
 			}
 			_dAlloc.deallocate(_data, newCapacity);
 			throw;
-		}		
+		}
+		CHECK
 	}
 
 	Vector(const Vector& other) : Vector(other.size(), other.begin(), other.end()) {}
@@ -167,7 +171,7 @@ public:
 		//delete[] _data;
 		//_data = new T[other.size() * 2];
 		_dAlloc.deallocate(_data, capacity());
-		_data = _dAlloc.allocate(other.size() * 2);     
+		_data = _dAlloc.allocate(other.size() * 2);
 		_size = 0;
 		_maxSize = other.size() * 2;
 		try {
@@ -182,10 +186,10 @@ public:
 			}
 			_dAlloc.deallocate(_data, capacity());
 			throw;
-		}	
+		}
 		return *this;
 	}
-	Vector& operator=(Vector&& other) noexcept { 
+	Vector& operator=(Vector&& other) noexcept {
 		if (*this == other)
 			return*this;
 		swap(*this, other);
@@ -228,44 +232,55 @@ public:
 #pragma region Capacity
 	size_t size() const noexcept { return _size; }
 	size_t capacity() const noexcept { return _maxSize; }
-	void reserve(size_t n) { 
-		if (n > capacity())
+	void reserve(size_t n) {
+		if (n <= capacity())
+			return;
+		if (_data == nullptr)
+			_data = _dAlloc.allocate(n);
+		else
 		{
-			T* temp = _dAlloc.allocate(n);   
-			int tempSize = 0;
-			try {
-				for (; tempSize <= size(); tempSize++)
-				{
-					new (temp + tempSize)T(_data[tempSize]);
-				}
+			T* temp = _dAlloc.allocate(n);
+			size_t tempSize = 0;
+			for (; tempSize <= size(); tempSize++)
+			{
+				new (temp + tempSize)T(_data[tempSize]);
+				_data[tempSize].~T();
 			}
-			catch (...) {
-				for (size_t i = 0; i < tempSize; ++i) {
-					temp[i].~T();
-				}
-				_dAlloc.deallocate(temp, capacity());
-				throw;
-			}				
+			//try {
+			//	for (; tempSize <= size(); tempSize++)
+			//{
+			//	new (temp + tempSize)T(_data[tempSize]);
+			//	_data[tempSize].~T();
+			//}
+			//}
+			//catch (...) {
+			//	for (size_t i = 0; i < tempSize; ++i) {
+			//		temp[i].~T();
+			//	}
+			//	//_dAlloc.deallocate(temp, capacity());
+			//	throw;
+			//}				
 			_dAlloc.deallocate(_data, _maxSize);
 			_data = temp;
 		}
-		else if(n <= capacity())
-		{
-			return;
-		}
-		_maxSize = n; 
+
+		_maxSize = n;
 	}
 #pragma endregion Capacity
 
 #pragma region Modifiers
-	void shrink_to_fit() { 
+	void shrink_to_fit() {
 		if (size() == capacity()) {
 			return;
 		}
 		T* temp = _dAlloc.allocate(_size);
-		int tempSize = 0;
-		try {
-			for (; tempSize <= size(); tempSize++)
+		size_t tempSize = 0;
+		for (; tempSize < size(); ++tempSize)
+		{
+			new (temp + tempSize)T(_data[tempSize]);
+		}
+		/*try {
+			for (; tempSize < size(); ++tempSize)
 			{
 				new (temp + tempSize)T(_data[tempSize]);
 			}
@@ -276,57 +291,69 @@ public:
 			}
 			_dAlloc.deallocate(_data, capacity());
 			throw;
-		}	
-		_dAlloc.deallocate(_data, _maxSize);
+		}	*/
+		//_dAlloc.deallocate(_data, _maxSize);
+		this->~Vector();
 		_maxSize = _size;
 		_data = temp;
 	}
-	void push_back(T c) {	
-		if (size() >= capacity()) {
-			reserve(capacity() * 2);
+	void push_back(const T& c) {
+
+		if (size() == capacity()) {
+			reserve(capacity() * 2 + 1);
 		}
-		try {
+		new (_data + _size)T(c);
+		++_size;
+
+		/*try {
+			if (size() >= capacity()) {
+				reserve(capacity() * 2);
+			}
 			new (_data + _size)T(c);
+			++_size;
+
 		}
 		catch (...) {
 			_data[_size].~T();
 			throw;
-		}
-
-		++_size;	
-		CHECK
+		}*/
 	}
-	void resize(size_t n) { 
-		if (n >= _size)
-		{
-			if (capacity() < n) {
-				T* temp = _dAlloc.allocate(n);
-				int tempSize = 0;
-				try {
-					for (; tempSize <= _size; tempSize++)
-					{
-						new (temp + tempSize)T(_data[tempSize]);
-					}
-					for (; tempSize < n; tempSize++)
-					{
-						new (temp + tempSize)T();
-					}
+
+	void resize(size_t n) {  //Måste fixes
+
+		if (n < _size) {
+			for (size_t i = n; i < _size; ++i) {
+				_data[i].~T();
+			}
+		}
+		if (capacity() < n) {
+			reserve(n);
+			/*T* temp = _dAlloc.allocate(n);
+			size_t tempSize = 0;
+			try {
+				for (; tempSize <= _size; tempSize++)
+				{
+					new (temp + tempSize)T(_data[tempSize]);
 				}
-				catch (...) {
-					for (size_t i = 0; i < tempSize; ++i) {
-						_data[i].~T();
-					}
-					_dAlloc.deallocate(_data, capacity());
-					throw;
+				for (; tempSize < n; tempSize++)
+				{
+					new (temp + tempSize)T();
+				}
+			}
+			catch (...) {
+				for (size_t i = 0; i < tempSize; ++i) {
+					_data[i].~T();
 				}
 				_dAlloc.deallocate(_data, capacity());
-				_data = temp;
-				_maxSize = n;
-
+				throw;
 			}
-		}	
-		reserve(n * 2); 
-		_size = n;	
+			_maxSize = n;*/
+		}
+		for (; _size < n; _size++)
+		{
+			new(_data + _size) T();
+		}
+
 	}
 #pragma endregion Modifiers
 
@@ -336,7 +363,7 @@ public:
 		for (; lIt != lhs.end() && rIt != rhs.end(); ++lIt, ++rIt)
 			if (*lIt < *rIt)
 				return std::strong_ordering::less;
-			else if (*lIt > * rIt)
+			else if (*lIt > *rIt)
 				return std::strong_ordering::greater;
 		if (lIt == lhs.end())
 			if (rIt == rhs.end())
@@ -351,8 +378,8 @@ public:
 		if (lhs.size() != rhs.size()) {
 			return false;
 		}
-		return (lhs <=> rhs) == 0; 
-	}   
+		return (lhs <=> rhs) == 0;
+	}
 	friend bool operator!=(const Vector& lhs, const Vector& rhs) {
 		if (lhs.size() != rhs.size()) {
 			return true;
@@ -365,15 +392,18 @@ public:
 		assert(Invariant());
 	}
 
-	bool Invariant() const {  
-		if (size() > capacity()) {
+	bool Invariant() const {
+		if (_size > _maxSize) {
 			return false;
 		}
-		for (auto p = begin(); p != end(); p++)
+		if (_maxSize > 0 && _data == nullptr)
+			return false;
+
+		/*for (auto p = begin(); p != end(); p++)
 		{
 			if (p == nullptr)
 				return false;
-		}
+		}*/
 		return true;
 	}
 
