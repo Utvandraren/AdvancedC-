@@ -8,7 +8,7 @@
 
 //Generates all functions declared
 //Uncomment this to check that all functions compiles.
-template class Vector<int>; 
+//template class Vector<int>; 
 
 #include <iostream>
 using std::cout;

@@ -128,15 +128,9 @@ public:
 		_maxSize = newCapacity;
 		auto rhs_data = begin;
 		_data = _dAlloc.allocate(newCapacity);
-		//if (newCapacity == 0) {
-		//	_data = _dAlloc.allocate(2);
-		//	_maxSize = 2;
-		//}
+		//T* newData = _dAlloc.allocate(other.capacity());
 
-		//else {
-		//	_data = _dAlloc.allocate(newCapacity); //-----------------------
-		//	_maxSize = newCapacity;
-		//} 
+
 		try {
 
 			for (; (rhs_data + _size) != end; ++_size)
@@ -165,32 +159,55 @@ public:
 
 	Vector(const char* other) : Vector(std::strlen(other), other, other + std::strlen(other)) {}
 
+	//Vector& operator=(const Vector& other) {   //copy assignment
+	//	if (*this == other)
+	//		return*this;
+
+	//	_dAlloc.deallocate(_data, capacity());
+	//	_data = _dAlloc.allocate(other.size() * 2);
+	//	_size = 0;
+	//	_maxSize = other.size() * 2;
+	//	try {
+	//		for (; _size < other.size(); _size++)
+	//		{
+	//			new (_data + _size)T(other[_size]);
+	//		}
+	//	}
+	//	catch (...) {
+	//		for (size_t i = 0; i < size(); ++i) {
+	//			_data[i].~T();
+	//		}
+	//		_dAlloc.deallocate(_data, capacity());
+	//		throw;
+	//	}
+	//	return *this;
+	//}
+
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
 			return*this;
-		//delete[] _data;
-		//_data = new T[other.size() * 2];
-		_dAlloc.deallocate(_data, capacity());
-		_data = _dAlloc.allocate(other.size() * 2);
-		_size = 0;
-		_maxSize = other.size() * 2;
-		try {
-			for (; _size < other.size(); _size++)
+		int newSize = 0;
+		T* newData = _dAlloc.allocate(other.capacity());
+
+		for (; newSize < other.size(); newSize++)
+		{
+			try
 			{
-				new (_data + _size)T(other[_size]);
+				new (newData + newSize)T(other[newSize]);
+			}
+			catch (const std::exception&)
+			{
+				
 			}
 		}
-		catch (...) {
-			for (size_t i = 0; i < size(); ++i) {
-				_data[i].~T();
-			}
-			_dAlloc.deallocate(_data, capacity());
-			throw;
-		}
+
+		_data = newData;
+		_size = newSize;
+		_maxSize = other.capacity();
 		return *this;
 	}
 	Vector& operator=(Vector&& other) noexcept {
-		if (*this == other)
+		if (this == &other)
 			return*this;
 		swap(*this, other);
 		return *this;
@@ -200,13 +217,13 @@ public:
 #pragma region element access
 	T& operator[](size_t i) { return _data[i]; }
 	T& at(size_t i) {
-		if (i > size() - 1)
+		if (i >= size())
 			throw std::out_of_range("WORNG");
 		return _data[i];
 	}
 	const T& operator[](size_t i) const { return _data[i]; }
 	const T& at(size_t i) const {
-		if (i > size() - 1)
+		if (i >= size())
 			throw std::out_of_range("WRONG!");
 		return _data[i];
 	}
@@ -241,7 +258,7 @@ public:
 		{
 			T* temp = _dAlloc.allocate(n);
 			size_t tempSize = 0;
-			for (; tempSize <= size(); tempSize++)
+			for (; tempSize < size(); tempSize++)
 			{
 				new (temp + tempSize)T(_data[tempSize]);
 				_data[tempSize].~T();
@@ -319,35 +336,15 @@ public:
 		}*/
 	}
 
-	void resize(size_t n) {  //Måste fixes
+	void resize(size_t n) {  //resize: Ska aldrig reducera capacity på vectorn (för att undvika invalidating iteratorer,
 
-		if (n < _size) {
+		/*if (n < _size) {
 			for (size_t i = n; i < _size; ++i) {
 				_data[i].~T();
 			}
-		}
+		}*/
 		if (capacity() < n) {
 			reserve(n);
-			/*T* temp = _dAlloc.allocate(n);
-			size_t tempSize = 0;
-			try {
-				for (; tempSize <= _size; tempSize++)
-				{
-					new (temp + tempSize)T(_data[tempSize]);
-				}
-				for (; tempSize < n; tempSize++)
-				{
-					new (temp + tempSize)T();
-				}
-			}
-			catch (...) {
-				for (size_t i = 0; i < tempSize; ++i) {
-					_data[i].~T();
-				}
-				_dAlloc.deallocate(_data, capacity());
-				throw;
-			}
-			_maxSize = n;*/
 		}
 		for (; _size < n; _size++)
 		{

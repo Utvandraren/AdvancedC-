@@ -103,7 +103,9 @@ void TestBasic() {
         assert(Fox2 == "Fox" && Fox == "");
         Bar = std::move(Fox2);
         assert(Fox2.Invariant() && Bar.Invariant());
-        assert(Bar == "Fox" && Fox2 == "");
+        assert(Bar == "Fox");
+        //nedanstående assert kan möjligen gå fel men jag tvivlar på att programmet är rätt i så fall!
+        assert(Fox2 == "" || Fox2 == "Bar");
     }
 #endif
 #if LEVEL>=8

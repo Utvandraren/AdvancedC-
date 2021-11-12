@@ -1,4 +1,4 @@
-ï»¿//#ifdef _DEBUG
+//#ifdef _DEBUG
 //#ifndef DBG_NEW
 //#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
 //#define new DBG_NEW
@@ -32,8 +32,8 @@ int main() {
 #endif
 
     std::cout <<
-        "ï¿½ndra i TestLevel.h fï¿½r att kontrollera vad som testas\n"
-        "Gï¿½ stegvis upp med LEVEL frï¿½n 1 till ungefï¿½r 25, ï¿½ndra den sen till 99\n"
+        "Ändra i TestLevel.h för att kontrollera vad som testas\n"
+        "Gå stegvis upp med LEVEL från 1 till ungefär 25, ändra den sen till 99\n"
         "Och kontrollera vilket betyg som testas genom att definiera VG_BETYG eller G_BETYG\n"
         "Change the includes of Vector.hpp and VectIter.hpp to your files\n\n"
         ;
@@ -55,6 +55,6 @@ int main() {
     //TestIterInAlg();
     //TestRevIterInAlg();
 
-//    Dalloc<double>().allocate(1); cout << "det finns en minneslï¿½cka i main, avsiktligt!\n sï¿½ ni kan se att er minneslï¿½ckstest fungerar\n";
+//    Dalloc<double>().allocate(1); cout << "det finns en minnesläcka i main, avsiktligt!\n så ni kan se att er minnesläckstest fungerar\n";
     //std::cin.get();
 }
