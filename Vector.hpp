@@ -207,9 +207,8 @@ public:
 		return *this;
 	}
 	Vector& operator=(Vector&& other) noexcept {
-		if (this == &other)
-			return*this;
-		swap(*this, other);
+		Vector temp(other);
+		swap(*this, temp);
 		return *this;
 	}
 #pragma endregion Constructors && Assignment
