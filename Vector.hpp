@@ -249,10 +249,15 @@ public:
 			size_t tempSize = 0;
 			for (; tempSize < size(); tempSize++)
 			{
-				new (temp + tempSize)T(_data[tempSize]);
-				_data[tempSize].~T();
+				try
+				{
+					new (temp + tempSize)T(_data[tempSize]);
+				}
+				catch (const std::exception&)
+				{
+				}
 			}				
-			_dAlloc.deallocate(_data, _maxSize);
+			this->~Vector();
 			_data = temp;
 		}
 
