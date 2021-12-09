@@ -117,7 +117,7 @@ public:
 		_dAlloc.deallocate(_data, capacity());
 	}
 
-	Vector() noexcept {    //TODO: Fix so the data when null is handled by the code
+	Vector() noexcept {    
 		_data = nullptr;
 		CHECK
 	}
@@ -128,7 +128,6 @@ public:
 		_maxSize = newCapacity;
 		auto rhs_data = begin;
 		_data = _dAlloc.allocate(newCapacity);
-		//T* newData = _dAlloc.allocate(other.capacity());
 
 
 		try {
@@ -147,6 +146,19 @@ public:
 			_dAlloc.deallocate(_data, newCapacity);
 			throw;
 		}
+
+
+		/*for (; (rhs_data + _size) != end; ++_size)
+		{
+			try
+			{
+				new (_data + _size) T(rhs_data[_size]);
+			}
+			catch (const std::exception&)
+			{
+			}
+		}*/
+
 		CHECK
 	}
 
@@ -158,30 +170,6 @@ public:
 	}
 
 	Vector(const char* other) : Vector(std::strlen(other), other, other + std::strlen(other)) {}
-
-	//Vector& operator=(const Vector& other) {   //copy assignment
-	//	if (*this == other)
-	//		return*this;
-
-	//	_dAlloc.deallocate(_data, capacity());
-	//	_data = _dAlloc.allocate(other.size() * 2);
-	//	_size = 0;
-	//	_maxSize = other.size() * 2;
-	//	try {
-	//		for (; _size < other.size(); _size++)
-	//		{
-	//			new (_data + _size)T(other[_size]);
-	//		}
-	//	}
-	//	catch (...) {
-	//		for (size_t i = 0; i < size(); ++i) {
-	//			_data[i].~T();
-	//		}
-	//		_dAlloc.deallocate(_data, capacity());
-	//		throw;
-	//	}
-	//	return *this;
-	//}
 
 	Vector& operator=(const Vector& other) {   //copy assignment
 		if (*this == other)
@@ -197,9 +185,11 @@ public:
 			}
 			catch (const std::exception&)
 			{
-				
+
 			}
 		}
+
+		this->~Vector();
 
 		_data = newData;
 		_size = newSize;
@@ -261,21 +251,7 @@ public:
 			{
 				new (temp + tempSize)T(_data[tempSize]);
 				_data[tempSize].~T();
-			}
-			//try {
-			//	for (; tempSize <= size(); tempSize++)
-			//{
-			//	new (temp + tempSize)T(_data[tempSize]);
-			//	_data[tempSize].~T();
-			//}
-			//}
-			//catch (...) {
-			//	for (size_t i = 0; i < tempSize; ++i) {
-			//		temp[i].~T();
-			//	}
-			//	//_dAlloc.deallocate(temp, capacity());
-			//	throw;
-			//}				
+			}				
 			_dAlloc.deallocate(_data, _maxSize);
 			_data = temp;
 		}
@@ -294,21 +270,7 @@ public:
 		for (; tempSize < size(); ++tempSize)
 		{
 			new (temp + tempSize)T(_data[tempSize]);
-		}
-		/*try {
-			for (; tempSize < size(); ++tempSize)
-			{
-				new (temp + tempSize)T(_data[tempSize]);
-			}
-		}
-		catch (...) {
-			for (size_t i = 0; i < tempSize; ++i) {
-				_data[i].~T();
-			}
-			_dAlloc.deallocate(_data, capacity());
-			throw;
-		}	*/
-		//_dAlloc.deallocate(_data, _maxSize);
+		}		
 		this->~Vector();
 		_maxSize = _size;
 		_data = temp;
