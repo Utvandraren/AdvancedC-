@@ -185,7 +185,7 @@ public:
 			}
 			catch (const std::exception&)
 			{
-
+				throw;
 			}
 		}
 
@@ -254,6 +254,7 @@ public:
 				}
 				catch (const std::exception&)
 				{
+					throw;
 				}
 			}				
 			this->~Vector();
@@ -277,6 +278,7 @@ public:
 			}
 			catch (const std::exception&)
 			{
+				throw;
 			}
 		}
 		this->~Vector();
