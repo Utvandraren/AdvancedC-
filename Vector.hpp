@@ -246,8 +246,7 @@ public:
 		else
 		{
 			T* temp = _dAlloc.allocate(n);
-			size_t tempSize = 0;
-			for (; tempSize < size(); tempSize++)
+			for (size_t tempSize = 0; tempSize < size(); ++tempSize)
 			{
 				try
 				{
@@ -260,7 +259,6 @@ public:
 			this->~Vector();
 			_data = temp;
 		}
-
 		_maxSize = n;
 	}
 #pragma endregion Capacity
@@ -270,12 +268,17 @@ public:
 		if (size() == capacity()) {
 			return;
 		}
-		T* temp = _dAlloc.allocate(_size);
-		size_t tempSize = 0;
-		for (; tempSize < size(); ++tempSize)
+		T* temp = _dAlloc.allocate(_size);		
+		for (size_t tempSize = 0; tempSize < size(); ++tempSize)
 		{
-			new (temp + tempSize)T(_data[tempSize]);
-		}		
+			try
+			{
+				new (temp + tempSize)T(_data[tempSize]);
+			}
+			catch (const std::exception&)
+			{
+			}
+		}
 		this->~Vector();
 		_maxSize = _size;
 		_data = temp;
@@ -286,29 +289,11 @@ public:
 			reserve(capacity() * 2 + 1);
 		}
 		new (_data + _size)T(c);
-		++_size;
-
-		/*try {
-			if (size() >= capacity()) {
-				reserve(capacity() * 2);
-			}
-			new (_data + _size)T(c);
-			++_size;
-
-		}
-		catch (...) {
-			_data[_size].~T();
-			throw;
-		}*/
+		++_size;		
 	}
 
-	void resize(size_t n) {  //resize: Ska aldrig reducera capacity på vectorn (för att undvika invalidating iteratorer,
-
-		/*if (n < _size) {
-			for (size_t i = n; i < _size; ++i) {
-				_data[i].~T();
-			}
-		}*/
+	void resize(size_t n) {  
+		
 		if (capacity() < n) {
 			reserve(n);
 		}
@@ -316,7 +301,6 @@ public:
 		{
 			new(_data + _size) T();
 		}
-
 	}
 #pragma endregion Modifiers
 
